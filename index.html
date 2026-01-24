@@ -1022,9 +1022,14 @@
 
     a:focus-visible,
     button:focus-visible,
-    input:focus-visible,
     [tabindex="0"]:focus-visible {
       border-radius: 4px;
+    }
+
+    /* Terminal input: subtle focus since cursor already indicates focus */
+    .input-field:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     /* Accessibility: Skip intro button */
