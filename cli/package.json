@@ -1,6 +1,6 @@
 {
   "name": "yoren",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Digital consciousness of Yoren - coming soon",
   "author": "Yoren Chang <hi@yoren.sh>",
   "license": "MIT",
@@ -15,6 +15,6 @@
   },
   "files": ["index.js"],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   }
 }

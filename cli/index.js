@@ -3,7 +3,7 @@
 console.log(`
   ╭──────────────────────────────────────╮
   │                                      │
-  │   yoren.sh - coming soon             │
+  │   luke, I am not your father         │
   │                                      │
   │   Visit https://yoren.sh             │
   │                                      │
