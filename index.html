@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>yoren.sh — digital consciousness</title>
+  <meta name="description" content="yoren.sh - A digital representation of Yoren on the internet. Run npx yoren in your terminal.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --amber: #ffb000;
+      --amber-dim: #cc8800;
+      --amber-glow: #ffcc00;
+      --cyan: #00ffff;
+      --cyan-dim: #008b8b;
+      --magenta: #ff00ff;
+      --bg-deep: #0a0a0c;
+      --bg-terminal: #0d0d10;
+      --scanline-opacity: 0.03;
+      --glow-intensity: 0.8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--amber);
+      font-family: 'VT323', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* CRT Screen Container */
+    .crt-container {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Scanlines Overlay */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, var(--scanline-opacity)) 0px,
+        rgba(0, 0, 0, var(--scanline-opacity)) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+    }
+
+    /* CRT Flicker Effect */
+    .crt-flicker {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+      animation: flicker 0.15s infinite;
+      opacity: 0.02;
+      background: var(--amber);
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 0.02; }
+      50% { opacity: 0.04; }
+    }
+
+    /* Vignette Effect */
+    .vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 998;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 60%,
+        rgba(0, 0, 0, 0.4) 100%
+      );
+    }
+
+    /* Noise Texture */
+    .noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 997;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    /* Main Content */
+    .terminal-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Boot Sequence */
+    .boot-sequence {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-deep);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .boot-sequence.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .boot-text {
+      text-align: left;
+      line-height: 1.8;
+    }
+
+    .boot-line {
+      opacity: 0;
+      animation: bootFadeIn 0.1s forwards;
+    }
+
+    @keyframes bootFadeIn {
+      to { opacity: 1; }
+    }
+
+    /* ASCII Art Header */
+    .ascii-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeInGlow 1s ease forwards;
+      animation-delay: 2.5s;
+    }
+
+    .ascii-art {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(0.4rem, 1.5vw, 0.75rem);
+      line-height: 1.2;
+      white-space: pre;
+      color: var(--amber);
+      text-shadow:
+        0 0 10px var(--amber-glow),
+        0 0 20px var(--amber-dim),
+        0 0 40px rgba(255, 176, 0, 0.3);
+      display: inline-block;
+    }
+
+    @keyframes fadeInGlow {
+      from {
+        opacity: 0;
+        filter: blur(10px);
+      }
+      to {
+        opacity: 1;
+        filter: blur(0);
+      }
+    }
+
+    /* System Status Bar */
+    .system-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border: 1px solid var(--amber-dim);
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      opacity: 0;
+      animation: slideIn 0.5s ease forwards;
+      animation-delay: 2.8s;
+      background: rgba(255, 176, 0, 0.02);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .status-label {
+      color: var(--amber-dim);
+    }
+
+    .status-value {
+      color: var(--amber);
+    }
+
+    /* Terminal Window */
+    .terminal {
+      background: var(--bg-terminal);
+      border: 1px solid var(--amber-dim);
+      padding: 1.5rem;
+      min-height: 400px;
+      position: relative;
+      opacity: 0;
+      animation: terminalBoot 0.8s ease forwards;
+      animation-delay: 3s;
+    }
+
+    @keyframes terminalBoot {
+      from {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 176, 0, 0.2);
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid;
+    }
+
+    .terminal-dot.red { border-color: #ff5f56; background: rgba(255, 95, 86, 0.3); }
+    .terminal-dot.yellow { border-color: #ffbd2e; background: rgba(255, 189, 46, 0.3); }
+    .terminal-dot.green { border-color: #27c93f; background: rgba(39, 201, 63, 0.3); }
+
+    .terminal-title {
+      margin-left: auto;
+      font-size: 0.9rem;
+      color: var(--amber-dim);
+    }
+
+    .terminal-body {
+      font-size: 1.3rem;
+      line-height: 1.6;
+    }
+
+    .output-line {
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: typeLine 0.3s ease forwards;
+    }
+
+    @keyframes typeLine {
+      from { opacity: 0; transform: translateX(-5px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .prompt {
+      color: var(--cyan);
+    }
+
+    .command {
+      color: var(--amber);
+    }
+
+    .output {
+      color: var(--amber-dim);
+    }
+
+    .highlight {
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan);
+    }
+
+    .accent {
+      color: var(--magenta);
+      text-shadow: 0 0 10px var(--magenta);
+    }
+
+    /* Interactive Input */
+    .input-line {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .input-field {
+      background: transparent;
+      border: none;
+      color: var(--amber);
+      font-family: 'VT323', monospace;
+      font-size: 1.3rem;
+      flex: 1;
+      outline: none;
+      caret-color: var(--amber);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 1.3rem;
+      background: var(--amber);
+      animation: blink 1s step-end infinite;
+      margin-left: 2px;
+      vertical-align: middle;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* Command Showcase */
+    .cli-showcase {
+      margin-top: 3rem;
+      padding: 2rem;
+      border: 1px dashed var(--amber-dim);
+      text-align: center;
+      opacity: 0;
+      animation: fadeInGlow 0.8s ease forwards;
+      animation-delay: 3.5s;
+      background:
+        linear-gradient(135deg, rgba(255, 176, 0, 0.02) 0%, transparent 50%),
+        linear-gradient(225deg, rgba(0, 255, 255, 0.02) 0%, transparent 50%);
+    }
+
+    .cli-showcase h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      font-weight: normal;
+      color: var(--amber);
+    }
+
+    .cli-command {
+      display: inline-block;
+      background: var(--bg-deep);
+      padding: 1rem 2rem;
+      border: 1px solid var(--cyan-dim);
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cli-command:hover {
+      border-color: var(--cyan);
+      box-shadow:
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.05);
+    }
+
+    .cli-command::before {
+      content: '$ ';
+      color: var(--cyan);
+    }
+
+    .cli-command .copy-hint {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      color: var(--cyan);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .cli-command:hover .copy-hint {
+      opacity: 1;
+    }
+
+    .cli-command.copied .copy-hint {
+      opacity: 1;
+    }
+
+    /* Links Section */
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+      opacity: 0;
+      animation: fadeInGlow 0.8s ease forwards;
+      animation-delay: 3.8s;
+    }
+
+    .link-card {
+      border: 1px solid var(--amber-dim);
+      padding: 1.5rem;
+      text-decoration: none;
+      color: var(--amber);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-terminal);
+    }
+
+    .link-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 176, 0, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .link-card:hover::before {
+      left: 100%;
+    }
+
+    .link-card:hover {
+      border-color: var(--amber);
+      box-shadow: 0 0 30px rgba(255, 176, 0, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .link-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      font-weight: normal;
+    }
+
+    .link-card p {
+      font-size: 1rem;
+      color: var(--amber-dim);
+    }
+
+    .link-card .arrow {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      color: var(--cyan);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .link-card:hover .arrow {
+      opacity: 1;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 176, 0, 0.2);
+      text-align: center;
+      font-size: 1rem;
+      color: var(--amber-dim);
+      opacity: 0;
+      animation: fadeInGlow 0.8s ease forwards;
+      animation-delay: 4s;
+    }
+
+    .footer a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-shadow: 0 0 10px var(--cyan);
+    }
+
+    /* Glitch Effect on Hover */
+    .glitch-hover {
+      position: relative;
+    }
+
+    .glitch-hover:hover {
+      animation: glitch 0.3s ease;
+    }
+
+    @keyframes glitch {
+      0%, 100% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(2px, -2px); }
+      60% { transform: translate(-2px, -2px); }
+      80% { transform: translate(2px, 2px); }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .terminal-wrapper {
+        padding: 1rem;
+      }
+
+      .system-status {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+      }
+
+      .ascii-art {
+        font-size: 0.35rem;
+      }
+    }
+
+    /* Selection */
+    ::selection {
+      background: var(--amber);
+      color: var(--bg-deep);
+    }
+  </style>
+</head>
+<body>
+  <div class="crt-container">
+    <!-- CRT Effects -->
+    <div class="scanlines"></div>
+    <div class="crt-flicker"></div>
+    <div class="vignette"></div>
+    <div class="noise"></div>
+
+    <!-- Boot Sequence -->
+    <div class="boot-sequence" id="bootSequence">
+      <div class="boot-text" id="bootText"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="terminal-wrapper">
+      <!-- ASCII Art Header -->
+      <div class="ascii-header">
+        <pre class="ascii-art">
+██╗   ██╗ ██████╗ ██████╗ ███████╗███╗   ██╗   ███████╗██╗  ██╗
+╚██╗ ██╔╝██╔═══██╗██╔══██╗██╔════╝████╗  ██║   ██╔════╝██║  ██║
+ ╚████╔╝ ██║   ██║██████╔╝█████╗  ██╔██╗ ██║   ███████╗███████║
+  ╚██╔╝  ██║   ██║██╔══██╗██╔══╝  ██║╚██╗██║   ╚════██║██╔══██║
+   ██║   ╚██████╔╝██║  ██║███████╗██║ ╚████║██╗███████║██║  ██║
+   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═╝╚══════╝╚═╝  ╚═╝
+        </pre>
+        <p style="font-size: 1.2rem; color: var(--amber-dim); margin-top: 1rem;">
+          digital consciousness v1.0.0
+        </p>
+      </div>
+
+      <!-- System Status -->
+      <div class="system-status">
+        <div class="status-item">
+          <div class="status-dot"></div>
+          <span class="status-label">STATUS:</span>
+          <span class="status-value">ONLINE</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">LOCATION:</span>
+          <span class="status-value">THE INTERNET</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">UPTIME:</span>
+          <span class="status-value" id="uptime">00:00:00</span>
+        </div>
+      </div>
+
+      <!-- Terminal Window -->
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <span class="terminal-title">yoren@internet:~</span>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <!-- Content will be typed here -->
+        </div>
+        <div class="input-line">
+          <span class="prompt">visitor@yoren.sh:~$&nbsp;</span>
+          <input type="text" class="input-field" id="commandInput" autocomplete="off" spellcheck="false" placeholder="">
+          <span class="cursor" id="cursor"></span>
+        </div>
+      </div>
+
+      <!-- CLI Showcase -->
+      <div class="cli-showcase">
+        <h2>[ RUN ME IN YOUR TERMINAL ]</h2>
+        <div class="cli-command glitch-hover" onclick="copyCommand(this)">
+          <span class="copy-hint">click to copy</span>
+          npx yoren
+        </div>
+        <p style="margin-top: 1rem; color: var(--amber-dim); font-size: 1rem;">
+          coming soon
+        </p>
+      </div>
+
+      <!-- Links Grid -->
+      <div class="links-grid">
+        <a href="https://github.com/user/yoren" class="link-card glitch-hover" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">-></span>
+          <h3>[ GITHUB ]</h3>
+          <p>code repositories</p>
+        </a>
+        <a href="https://twitter.com/user/yoren" class="link-card glitch-hover" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">-></span>
+          <h3>[ TWITTER ]</h3>
+          <p>thoughts & updates</p>
+        </a>
+        <a href="https://linkedin.com/in/yoren" class="link-card glitch-hover" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">-></span>
+          <h3>[ LINKEDIN ]</h3>
+          <p>professional network</p>
+        </a>
+        <a href="mailto:hello@yoren.sh" class="link-card glitch-hover">
+          <span class="arrow">-></span>
+          <h3>[ EMAIL ]</h3>
+          <p>get in touch</p>
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>crafted with <span style="color: var(--magenta);">*</span> by yoren |
+        <a href="https://github.com/yoren/yoren.sh" target="_blank" rel="noopener noreferrer">source code</a></p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">2024 | all systems nominal</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utility: Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Utility: Create text node safely
+    function createTextSpan(text, className) {
+      const span = document.createElement('span');
+      span.className = className;
+      span.textContent = text;
+      return span;
+    }
+
+    // Boot Sequence
+    const bootLines = [
+      'BIOS v3.14.159 - YOREN SYSTEMS',
+      'Checking memory... 8192MB OK',
+      'Loading kernel...',
+      'Mounting filesystems...',
+      'Starting network services...',
+      'Initializing digital consciousness...',
+      '',
+      '> SYSTEM READY',
+      '> WELCOME TO YOREN.SH',
+      ''
+    ];
+
+    const bootSequence = document.getElementById('bootSequence');
+    const bootText = document.getElementById('bootText');
+
+    async function runBootSequence() {
+      for (let i = 0; i < bootLines.length; i++) {
+        const line = document.createElement('div');
+        line.className = 'boot-line';
+        line.style.animationDelay = `${i * 0.15}s`;
+        line.textContent = bootLines[i] || '\u00A0';
+        bootText.appendChild(line);
+        await sleep(150);
+      }
+      await sleep(800);
+      bootSequence.classList.add('hidden');
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Terminal Content - stored as structured data
+    const terminalContent = [
+      { type: 'output', text: '> Establishing connection...' },
+      { type: 'output', text: '> Connection established.' },
+      { type: 'output', text: '' },
+      { type: 'prompt', text: 'yoren@internet:~$ ' },
+      { type: 'command', text: 'whoami' },
+      { type: 'output', text: '' },
+      { type: 'rich', parts: [{ text: '  ', cls: 'output' }, { text: 'YOREN', cls: 'highlight' }, { text: ' — developer, creator, digital wanderer', cls: 'output' }] },
+      { type: 'output', text: '' },
+      { type: 'output', text: '  I build things for the web and beyond.' },
+      { type: 'output', text: '  Currently exploring the intersection of' },
+      { type: 'rich', parts: [{ text: '  ', cls: 'output' }, { text: 'AI', cls: 'accent' }, { text: ', ', cls: 'output' }, { text: 'code', cls: 'accent' }, { text: ', and ', cls: 'output' }, { text: 'creativity', cls: 'accent' }, { text: '.', cls: 'output' }] },
+      { type: 'output', text: '' },
+      { type: 'prompt', text: 'yoren@internet:~$ ' },
+      { type: 'command', text: 'cat interests.txt' },
+      { type: 'output', text: '' },
+      { type: 'output', text: '  -> Web Development' },
+      { type: 'output', text: '  -> Open Source' },
+      { type: 'output', text: '  -> AI & Machine Learning' },
+      { type: 'output', text: '  -> Developer Tools' },
+      { type: 'output', text: '  -> Creative Coding' },
+      { type: 'output', text: '' },
+      { type: 'prompt', text: 'yoren@internet:~$ ' },
+      { type: 'command', text: 'echo "Type a command below to interact..."' },
+      { type: 'output', text: '' },
+    ];
+
+    const terminalBody = document.getElementById('terminalBody');
+    const commandInput = document.getElementById('commandInput');
+    const cursor = document.getElementById('cursor');
+
+    function createOutputLine() {
+      const line = document.createElement('div');
+      line.className = 'output-line';
+      return line;
+    }
+
+    async function typeTerminalContent() {
+      await sleep(3200); // Wait for terminal animation
+
+      for (let i = 0; i < terminalContent.length; i++) {
+        const item = terminalContent[i];
+        const line = createOutputLine();
+
+        if (item.type === 'prompt') {
+          line.appendChild(createTextSpan(item.text, 'prompt'));
+          terminalBody.appendChild(line);
+        } else if (item.type === 'command') {
+          // Get last line (prompt) and append command with typing effect
+          const lastLine = terminalBody.lastElementChild;
+          const cmdSpan = createTextSpan('', 'command');
+          lastLine.appendChild(cmdSpan);
+          for (const char of item.text) {
+            cmdSpan.textContent += char;
+            await sleep(50);
+          }
+        } else if (item.type === 'rich') {
+          // Multi-part line with different styles
+          for (const part of item.parts) {
+            line.appendChild(createTextSpan(part.text, part.cls));
+          }
+          terminalBody.appendChild(line);
+        } else {
+          line.appendChild(createTextSpan(item.text || '\u00A0', 'output'));
+          terminalBody.appendChild(line);
+        }
+
+        await sleep(100);
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }
+
+      commandInput.focus();
+    }
+
+    // Command responses - structured for safe rendering
+    const commands = {
+      help: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { text: '  Available commands:' },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'help', cls: 'highlight' }, { text: '      — show this message', cls: 'output' }] },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'about', cls: 'highlight' }, { text: '     — learn more about me', cls: 'output' }] },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'skills', cls: 'highlight' }, { text: '    — list my technical skills', cls: 'output' }] },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'contact', cls: 'highlight' }, { text: '   — how to reach me', cls: 'output' }] },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'projects', cls: 'highlight' }, { text: '  — view my projects', cls: 'output' }] },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'clear', cls: 'highlight' }, { text: '     — clear the terminal', cls: 'output' }] },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'sudo', cls: 'highlight' }, { text: '      — ???', cls: 'output' }] },
+          { text: '' }
+        ]
+      }),
+      about: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { text: '  +======================================+' },
+          { parts: [{ text: '  |  ', cls: 'output' }, { text: 'ABOUT YOREN', cls: 'highlight' }, { text: '                         |', cls: 'output' }] },
+          { text: '  +======================================+' },
+          { text: '' },
+          { text: '  A digital craftsman passionate about' },
+          { text: '  building elegant solutions to complex' },
+          { text: '  problems. I believe in clean code,' },
+          { text: '  thoughtful design, and the power of' },
+          { text: '  open source.' },
+          { text: '' },
+          { text: '  Currently: Building cool stuff' },
+          { text: '  Previously: Building other cool stuff' },
+          { text: '' }
+        ]
+      }),
+      skills: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { parts: [{ text: '  ', cls: 'output' }, { text: '[ TECHNICAL SKILLS ]', cls: 'accent' }] },
+          { text: '' },
+          { text: '  Languages   -> JavaScript, TypeScript, Python' },
+          { text: '  Frontend    -> React, Vue, Svelte' },
+          { text: '  Backend     -> Node.js, Go, Rust' },
+          { text: '  Tools       -> Git, Docker, AWS' },
+          { text: '  Interests   -> AI/ML, WebGL, Creative Coding' },
+          { text: '' }
+        ]
+      }),
+      contact: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { parts: [{ text: '  ', cls: 'output' }, { text: '[ GET IN TOUCH ]', cls: 'accent' }] },
+          { text: '' },
+          { parts: [{ text: '  Email    -> ', cls: 'output' }, { text: 'hello@yoren.sh', cls: 'highlight' }] },
+          { parts: [{ text: '  GitHub   -> ', cls: 'output' }, { text: 'github.com/yoren', cls: 'highlight' }] },
+          { parts: [{ text: '  Twitter  -> ', cls: 'output' }, { text: '@yoren', cls: 'highlight' }] },
+          { text: '' },
+          { text: '  I\'m always open to interesting' },
+          { text: '  conversations and collaborations.' },
+          { text: '' }
+        ]
+      }),
+      projects: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { parts: [{ text: '  ', cls: 'output' }, { text: '[ FEATURED PROJECTS ]', cls: 'accent' }] },
+          { text: '' },
+          { parts: [{ text: '  -> ', cls: 'output' }, { text: 'yoren.sh', cls: 'highlight' }] },
+          { text: '    This website. Meta, right?' },
+          { text: '' },
+          { parts: [{ text: '  -> ', cls: 'output' }, { text: 'yoren-cli', cls: 'highlight' }] },
+          { text: '    Run me in your terminal (coming soon)' },
+          { text: '' },
+          { text: '  -> More projects on GitHub...' },
+          { text: '' }
+        ]
+      }),
+      sudo: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'ACCESS DENIED', cls: 'accent' }] },
+          { text: '' },
+          { text: '  Nice try, but you\'re not root here.' },
+          { text: '  This isn\'t your ordinary terminal ;)' },
+          { text: '' }
+        ]
+      }),
+      clear: () => ({ type: 'clear' }),
+      matrix: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'Wake up, Neo...', cls: 'accent' }] },
+          { text: '  The Matrix has you.' },
+          { text: '' }
+        ]
+      }),
+      hello: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { text: '  Hello there!' },
+          { text: '  Welcome to my digital space.' },
+          { text: '' }
+        ]
+      }),
+      hi: () => commands.hello(),
+      ls: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { text: '  about.txt  interests.txt  projects/' },
+          { text: '  skills.txt  contact.txt  secrets/' },
+          { text: '' }
+        ]
+      }),
+      'cat secrets/': () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { parts: [{ text: '  ', cls: 'output' }, { text: 'Permission denied:', cls: 'accent' }, { text: ' Nice try!', cls: 'output' }] },
+          { text: '' }
+        ]
+      }),
+      pwd: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { text: '  /home/visitor/yoren.sh' },
+          { text: '' }
+        ]
+      }),
+      date: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { text: '  ' + new Date().toLocaleString() },
+          { text: '' }
+        ]
+      }),
+      whoami: () => ({
+        type: 'lines',
+        lines: [
+          { text: '' },
+          { text: '  visitor — a curious soul exploring the web' },
+          { text: '' }
+        ]
+      })
+    };
+
+    function renderLine(lineData) {
+      const line = createOutputLine();
+      if (lineData.parts) {
+        for (const part of lineData.parts) {
+          line.appendChild(createTextSpan(part.text, part.cls));
+        }
+      } else {
+        line.appendChild(createTextSpan(lineData.text || '\u00A0', 'output'));
+      }
+      return line;
+    }
+
+    commandInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const cmd = commandInput.value.trim().toLowerCase();
+        commandInput.value = '';
+
+        // Add command to terminal safely
+        const promptLine = createOutputLine();
+        promptLine.appendChild(createTextSpan('visitor@yoren.sh:~$ ', 'prompt'));
+        promptLine.appendChild(createTextSpan(cmd || '\u00A0', 'command'));
+        terminalBody.appendChild(promptLine);
+
+        if (cmd) {
+          const handler = commands[cmd];
+
+          if (handler) {
+            const result = handler();
+
+            if (result.type === 'clear') {
+              terminalBody.textContent = '';
+            } else if (result.type === 'lines') {
+              for (const lineData of result.lines) {
+                terminalBody.appendChild(renderLine(lineData));
+                await sleep(30);
+              }
+            }
+          } else {
+            const errorLine = createOutputLine();
+            errorLine.appendChild(createTextSpan('  Command not found: ' + cmd, 'output'));
+            terminalBody.appendChild(errorLine);
+
+            const hintLine = createOutputLine();
+            const hintSpan1 = createTextSpan('  Type ', 'output');
+            const hintSpan2 = createTextSpan('help', 'highlight');
+            const hintSpan3 = createTextSpan(' for available commands.', 'output');
+            hintLine.appendChild(hintSpan1);
+            hintLine.appendChild(hintSpan2);
+            hintLine.appendChild(hintSpan3);
+            terminalBody.appendChild(hintLine);
+          }
+        }
+
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }
+    });
+
+    // Focus input when clicking terminal
+    document.querySelector('.terminal').addEventListener('click', () => {
+      commandInput.focus();
+    });
+
+    // Hide cursor when input is focused
+    commandInput.addEventListener('focus', () => {
+      cursor.style.display = 'none';
+    });
+
+    commandInput.addEventListener('blur', () => {
+      cursor.style.display = 'inline-block';
+    });
+
+    // Uptime Counter
+    let seconds = 0;
+    const uptimeEl = document.getElementById('uptime');
+
+    setInterval(() => {
+      seconds++;
+      const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+      const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      uptimeEl.textContent = `${h}:${m}:${s}`;
+    }, 1000);
+
+    // Copy Command
+    function copyCommand(el) {
+      navigator.clipboard.writeText('npx yoren');
+      el.classList.add('copied');
+      const hint = el.querySelector('.copy-hint');
+      hint.textContent = 'copied!';
+      setTimeout(() => {
+        el.classList.remove('copied');
+        hint.textContent = 'click to copy';
+      }, 2000);
+    }
+
+    // Initialize
+    runBootSequence();
+    typeTerminalContent();
+  </script>
+</body>
+</html>
