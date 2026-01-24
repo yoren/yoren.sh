@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>yoren.sh</title>
   <meta name="description" content="yoren.sh - A digital presence. Run npx yoren in your terminal.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▸</text></svg>">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1324,6 +1324,18 @@
     const terminalContent = document.getElementById('terminalContent');
     const cmdInput = document.getElementById('cmdInput');
     const inputCursor = document.getElementById('inputCursor');
+    const MAX_INPUT_LENGTH = 256;
+    const MAX_TERMINAL_LINES = 200;
+
+    // Limit input length
+    cmdInput.setAttribute('maxlength', MAX_INPUT_LENGTH);
+
+    // Trim old terminal lines to prevent DOM bloat
+    function trimTerminalLines() {
+      while (terminalContent.children.length > MAX_TERMINAL_LINES) {
+        terminalContent.removeChild(terminalContent.firstChild);
+      }
+    }
 
     const introLines = [
       { type: 'dim', text: '> Connection established' },
@@ -1601,6 +1613,7 @@
           }
         }
 
+        trimTerminalLines();
         terminalContent.scrollTop = terminalContent.scrollHeight;
       } else {
         playKeySound();
