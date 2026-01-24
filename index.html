@@ -1410,6 +1410,7 @@
         { type: 'parts', parts: [{ text: '  skills    ', cls: 'hl' }, { text: 'technical abilities', cls: 'dim' }] },
         { type: 'parts', parts: [{ text: '  projects  ', cls: 'hl' }, { text: 'things i\'ve built', cls: 'dim' }] },
         { type: 'parts', parts: [{ text: '  contact   ', cls: 'hl' }, { text: 'reach out', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  npx yoren ', cls: 'hl' }, { text: 'run the CLI card', cls: 'dim' }] },
         { type: 'parts', parts: [{ text: '  clear     ', cls: 'hl' }, { text: 'clear terminal', cls: 'dim' }] },
         { type: 'parts', parts: [{ text: '  secret    ', cls: 'hl' }, { text: '???', cls: 'dim' }] },
         { type: 'out', text: '' },
@@ -1554,12 +1555,17 @@
         { type: 'dim', text: '  lacking only a decent text editor.' },
         { type: 'out', text: '' },
       ],
+      'npx yoren': () => 'NPX_YOREN',
+      yoren: () => 'NPX_YOREN',
+      './yoren': () => 'NPX_YOREN',
+      'node yoren': () => 'NPX_YOREN',
     };
 
     cmdInput.addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
         const cmd = cmdInput.value.trim().toLowerCase();
         cmdInput.value = '';
+        resizeInput();
         playEnterSound();
 
         // Show command
@@ -1575,6 +1581,8 @@
             const result = handler();
             if (result === 'CLEAR') {
               terminalContent.textContent = '';
+            } else if (result === 'NPX_YOREN') {
+              await runNpxYoren();
             } else if (Array.isArray(result)) {
               for (const line of result) {
                 terminalContent.appendChild(createLine(line));
@@ -1611,6 +1619,38 @@
     resizeInput();
 
 
+
+    // npx yoren animation - matches the real CLI output
+    async function runNpxYoren() {
+      const lines = [
+        { text: '', delay: 0 },
+        { text: '  ╭──────────────────────────────────────╮', cls: 'accent', delay: 50 },
+        { text: '  │                                      │', cls: 'accent', delay: 30 },
+        { text: '  │   luke, I am not your father         │', cls: 'out', delay: 40 },
+        { text: '  │                                      │', cls: 'accent', delay: 30 },
+        { text: '  │   Visit https://yoren.sh             │', cls: 'hl', delay: 40 },
+        { text: '  │                                      │', cls: 'accent', delay: 30 },
+        { text: '  ╰──────────────────────────────────────╯', cls: 'accent', delay: 50 },
+        { text: '', delay: 0 },
+      ];
+
+      for (const line of lines) {
+        const el = document.createElement('div');
+        el.className = 'output-line';
+        el.style.whiteSpace = 'pre';
+        el.style.fontFamily = 'monospace';
+        const span = document.createElement('span');
+        span.className = line.cls || 'out';
+        span.textContent = line.text;
+        el.appendChild(span);
+        terminalContent.appendChild(el);
+        terminalContent.scrollTop = terminalContent.scrollHeight;
+        if (line.delay) {
+          playBeep(200 + Math.random() * 100, 0.02, 0.02);
+          await sleep(line.delay);
+        }
+      }
+    }
 
     // Session Timer
     let sessionSeconds = 0;
