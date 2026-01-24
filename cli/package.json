@@ -1,0 +1,20 @@
+{
+  "name": "yoren",
+  "version": "0.0.1",
+  "description": "Digital consciousness of Yoren - coming soon",
+  "author": "Yoren Chang <yoren@1fix.io>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoren/yoren.sh.git"
+  },
+  "homepage": "https://yoren.sh",
+  "keywords": ["cli", "yoren"],
+  "bin": {
+    "yoren": "./index.js"
+  },
+  "files": ["index.js"],
+  "engines": {
+    "node": ">=18"
+  }
+}
