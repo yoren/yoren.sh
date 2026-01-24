@@ -16,10 +16,10 @@
     :root {
       --phosphor: #ffaa00;
       --phosphor-bright: #ffcc33;
-      --phosphor-dim: #996600;
+      --phosphor-dim: #b37700; /* Adjusted for 4.5:1 contrast on void */
       --phosphor-glow: rgba(255, 170, 0, 0.6);
       --electric: #00ffd5;
-      --electric-dim: #00aa8c;
+      --electric-dim: #00c9a0; /* Adjusted for better contrast */
       --warning: #ff3366;
       --void: #050508;
       --void-light: #0a0a0f;
@@ -975,15 +975,126 @@
     .hidden {
       display: none !important;
     }
+
+    /* Accessibility: Screen reader only */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Accessibility: Skip link */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--electric);
+      color: var(--void);
+      padding: 1rem 2rem;
+      z-index: 10000;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 0 0 8px 8px;
+      transition: top 0.3s ease;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Accessibility: Focus visible styles */
+    :focus {
+      outline: none;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--electric);
+      outline-offset: 3px;
+      box-shadow: 0 0 0 6px rgba(0, 255, 213, 0.25);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    [tabindex="0"]:focus-visible {
+      border-radius: 4px;
+    }
+
+    /* Accessibility: Skip intro button */
+    .skip-intro {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      background: transparent;
+      border: 1px solid var(--phosphor-dim);
+      color: var(--phosphor);
+      padding: 0.5rem 1rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      cursor: pointer;
+      z-index: 2001;
+      transition: all 0.3s ease;
+    }
+
+    .skip-intro:hover,
+    .skip-intro:focus {
+      border-color: var(--electric);
+      color: var(--electric);
+    }
+
+    /* Accessibility: Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      .scanlines,
+      .noise,
+      .flicker,
+      .chromatic,
+      .screen-tear,
+      .cursor,
+      .cursor-trail {
+        display: none !important;
+      }
+
+      html,
+      body {
+        cursor: auto !important;
+      }
+
+      .boot-sequence {
+        display: none !important;
+      }
+
+      #mainContent {
+        visibility: visible !important;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Skip to content link for keyboard users -->
+  <a href="#mainContent" class="skip-link">Skip to content</a>
+
   <!-- Custom Cursor -->
-  <div class="cursor" id="cursor"></div>
-  <div class="cursor-trail" id="cursorTrail"></div>
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
+  <div class="cursor-trail" id="cursorTrail" aria-hidden="true"></div>
 
   <!-- CRT Effects -->
-  <div class="crt-screen">
+  <div class="crt-screen" aria-hidden="true">
     <div class="scanlines"></div>
     <div class="chromatic"></div>
     <div class="flicker"></div>
@@ -992,12 +1103,12 @@
   </div>
 
   <!-- Matrix Easter Egg -->
-  <div class="matrix-mode" id="matrixMode">
+  <div class="matrix-mode" id="matrixMode" aria-hidden="true">
     <canvas id="matrixCanvas"></canvas>
   </div>
 
   <!-- Boot Sequence -->
-  <div class="boot-sequence" id="bootSequence"></div>
+  <div class="boot-sequence" id="bootSequence" role="alert" aria-live="polite" aria-label="Loading animation"></div>
 
   <!-- Main Content -->
   <div class="barrel-wrap">
@@ -1056,30 +1167,33 @@
       </div>
 
       <!-- Terminal -->
-      <section class="terminal-section">
+      <section class="terminal-section" aria-labelledby="terminal-heading">
+        <h2 id="terminal-heading" class="sr-only">Interactive Terminal</h2>
         <div class="terminal-bar">
           <div class="terminal-btn close"></div>
           <div class="terminal-btn minimize"></div>
           <div class="terminal-btn maximize"></div>
           <span class="terminal-path">~/yoren.sh</span>
         </div>
-        <div class="terminal-content" id="terminalContent"></div>
+        <div class="terminal-content" id="terminalContent" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Terminal output"></div>
         <div style="padding: 0 1.5rem 1.5rem;">
           <div class="input-row">
-            <span class="prompt">visitor@yoren.sh:~$&nbsp;</span>
+            <label for="cmdInput" class="sr-only">Terminal command input</label>
+            <span class="prompt" aria-hidden="true">visitor@yoren.sh:~$&nbsp;</span>
             <div class="input-wrapper">
               <input type="text" class="input-field" id="cmdInput" autocomplete="off" spellcheck="false" aria-label="Command input">
-              <div class="input-cursor" id="inputCursor"></div>
+              <div class="input-cursor" id="inputCursor" aria-hidden="true"></div>
             </div>
           </div>
         </div>
       </section>
 
       <!-- CLI Box -->
-      <section class="cli-box">
-        <div class="cli-cmd" id="cliCmd" role="button" tabindex="0" aria-label="Copy command to clipboard">
-          <span class="tooltip">click to copy</span>
-          <span class="dollar">$</span> npx yoren
+      <section class="cli-box" aria-labelledby="cli-heading">
+        <h2 id="cli-heading" class="sr-only">Command Line Tool</h2>
+        <div class="cli-cmd" id="cliCmd" role="button" tabindex="0" aria-label="Copy npx yoren command to clipboard">
+          <span class="tooltip" aria-hidden="true">click to copy</span>
+          <span class="dollar" aria-hidden="true">$</span> npx yoren
         </div>
         <p class="cli-note">coming to a terminal near you</p>
       </section>
@@ -1157,7 +1271,7 @@
   </div>
 
   <!-- Sound Toggle -->
-  <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound effects">
+  <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound effects" aria-pressed="false">
     [SOUND: OFF]
   </button>
 
@@ -1209,6 +1323,7 @@
       soundEnabled = !soundEnabled;
       soundToggle.textContent = soundEnabled ? '[SOUND: ON]' : '[SOUND: OFF]';
       soundToggle.classList.toggle('active', soundEnabled);
+      soundToggle.setAttribute('aria-pressed', soundEnabled);
       if (soundEnabled) playBeep(800, 0.1, 0.1);
     });
   </script>
@@ -1282,8 +1397,45 @@
       { text: '', delay: 300 },
     ];
 
+    let bootSkipped = false;
+
+    function skipBoot() {
+      bootSkipped = true;
+      bootSequence.classList.add('hidden');
+      mainContent.style.visibility = 'visible';
+      const skipBtn = document.getElementById('skipIntroBtn');
+      if (skipBtn) skipBtn.remove();
+      cmdInput.focus();
+    }
+
     async function runBoot() {
+      // Check for reduced motion preference
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        skipBoot();
+        return;
+      }
+
+      // Add skip intro button
+      const skipBtn = document.createElement('button');
+      skipBtn.id = 'skipIntroBtn';
+      skipBtn.className = 'skip-intro';
+      skipBtn.textContent = 'Skip intro [Esc]';
+      skipBtn.addEventListener('click', skipBoot);
+      bootSequence.appendChild(skipBtn);
+      skipBtn.focus();
+
+      // Allow Escape key to skip
+      const escHandler = (e) => {
+        if (e.key === 'Escape') {
+          skipBoot();
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+
       for (const line of bootLines) {
+        if (bootSkipped) return;
+
         const div = document.createElement('div');
         div.className = 'boot-line';
 
@@ -1312,12 +1464,19 @@
         await sleep(line.delay);
       }
 
+      if (bootSkipped) return;
+
       await sleep(500);
       playBootSound();
       await sleep(300);
 
+      document.removeEventListener('keydown', escHandler);
+      const skipBtnEl = document.getElementById('skipIntroBtn');
+      if (skipBtnEl) skipBtnEl.remove();
+
       bootSequence.classList.add('hidden');
       mainContent.style.visibility = 'visible';
+      cmdInput.focus();
     }
 
     // Terminal System
