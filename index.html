@@ -637,78 +637,205 @@
       color: var(--phosphor-dim);
     }
 
-    /* Links */
+    /* Links - Connection Panel */
     .links-section {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
-      margin: 2rem 0;
+      margin: 3rem 0;
       opacity: 0;
       animation: fadeIn 0.5s ease forwards;
       animation-delay: 1.4s;
+      position: relative;
+    }
+
+    .links-header {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--phosphor-dim);
+      letter-spacing: 0.3em;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .links-header::before,
+    .links-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--phosphor-dim), transparent);
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem 2rem;
+      position: relative;
+    }
+
+    @media (max-width: 700px) {
+      .links-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .link-item {
       display: block;
-      padding: 1.25rem;
-      background: var(--void-light);
-      border: 1px solid transparent;
-      border-left: 3px solid var(--phosphor-dim);
       text-decoration: none;
       color: var(--phosphor);
-      transition: all 0.3s ease;
       position: relative;
-      overflow: hidden;
+      transition: transform 0.3s ease;
     }
 
-    .link-item::after {
+    .link-item:nth-child(2) { transform: translateX(20px); }
+    .link-item:nth-child(3) { transform: translateX(-10px); }
+    .link-item:nth-child(4) { transform: translateX(30px); }
+
+    .link-item:hover {
+      transform: translateX(0) scale(1.02);
+    }
+
+    .link-box {
+      background: var(--void);
+      border: 1px solid var(--phosphor-dim);
+      padding: 1rem 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .link-box::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, var(--phosphor-glow) 0%, transparent 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
+      right: 0;
+      height: 2px;
+      background: var(--phosphor-dim);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .link-item:hover {
-      border-left-color: var(--electric);
-      background: var(--void-lighter);
-      transform: translateX(5px);
+    .link-item:hover .link-box {
+      border-color: var(--electric);
+      box-shadow: 
+        0 0 20px rgba(0, 255, 213, 0.15),
+        inset 0 0 30px rgba(0, 255, 213, 0.03);
     }
 
-    .link-item:hover::after {
-      opacity: 0.05;
+    .link-item:hover .link-box::before {
+      background: var(--electric);
+      box-shadow: 0 0 10px var(--electric);
     }
 
-    .link-item:hover .link-arrow {
-      opacity: 1;
-      transform: translateX(0);
+    .link-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
     }
 
     .link-title {
       font-family: 'Silkscreen', cursive;
-      font-size: 0.9rem;
-      margin-bottom: 0.25rem;
+      font-size: 0.85rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+    }
+
+    .link-status {
+      width: 8px;
+      height: 8px;
+      background: var(--phosphor-dim);
+      border-radius: 50%;
+      animation: statusPulse 2s ease-in-out infinite;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .link-item:hover .link-status {
+      background: var(--electric);
+      box-shadow: 0 0 8px var(--electric);
+      animation: statusActive 0.5s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes statusActive {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.2); }
+    }
+
+    .link-signal {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--phosphor-dim);
+      transition: color 0.3s ease;
+    }
+
+    .link-item:hover .link-signal {
+      color: var(--electric);
     }
 
     .link-desc {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--phosphor-dim);
+      padding-left: 1.55rem;
     }
 
-    .link-arrow {
-      margin-left: auto;
+    .link-ascii {
+      position: absolute;
+      bottom: 0.5rem;
+      right: 0.75rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1.5rem;
+      color: var(--void-lighter);
+      transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+      pointer-events: none;
+    }
+
+    .link-item:hover .link-ascii {
       color: var(--electric);
-      opacity: 0;
-      transform: translateX(-10px);
-      transition: all 0.3s ease;
+      transform: scale(1.1) rotate(-5deg);
+      text-shadow: 0 0 15px var(--electric);
+    }
+
+    /* Glitch effect on hover */
+    .link-item:hover .link-title {
+      animation: textGlitch 0.3s ease;
+    }
+
+    @keyframes textGlitch {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-2px); }
+      40% { transform: translateX(2px); }
+      60% { transform: translateX(-1px); }
+      80% { transform: translateX(1px); }
+    }
+
+    /* Connection lines between items */
+    .links-grid::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1px;
+      height: 60%;
+      background: linear-gradient(180deg, transparent, var(--phosphor-dim), transparent);
+      transform: translate(-50%, -50%);
+      opacity: 0.3;
+    }
+
+    @media (max-width: 700px) {
+      .links-grid::before {
+        display: none;
+      }
+      .link-item:nth-child(n) {
+        transform: none;
+      }
+      .link-item:hover {
+        transform: scale(1.02);
+      }
     }
 
     /* Sound Toggle */
@@ -951,36 +1078,63 @@
         <p class="cli-note">coming to a terminal near you</p>
       </section>
 
-      <!-- Links -->
+      <!-- Links - Connection Panel -->
       <nav class="links-section" aria-label="External links">
-        <a href="https://github.com/yoren" class="link-item" target="_blank" rel="noopener noreferrer">
-          <div class="link-title">
-            [GITHUB]
-            <span class="link-arrow">-></span>
-          </div>
-          <div class="link-desc">where the code lives</div>
-        </a>
-        <a href="https://twitter.com/1fixdotio" class="link-item" target="_blank" rel="noopener noreferrer">
-          <div class="link-title">
-            [TWITTER]
-            <span class="link-arrow">-></span>
-          </div>
-          <div class="link-desc">hot takes & cold brew</div>
-        </a>
-        <a href="https://linkedin.com/in/yorenchang" class="link-item" target="_blank" rel="noopener noreferrer">
-          <div class="link-title">
-            [LINKEDIN]
-            <span class="link-arrow">-></span>
-          </div>
-          <div class="link-desc">the professional facade</div>
-        </a>
-        <a href="mailto:hi@yoren.sh" class="link-item">
-          <div class="link-title">
-            [EMAIL]
-            <span class="link-arrow">-></span>
-          </div>
-          <div class="link-desc">ping me</div>
-        </a>
+        <div class="links-header">ESTABLISH CONNECTION</div>
+        <div class="links-grid">
+          <a href="https://github.com/yoren" class="link-item" target="_blank" rel="noopener noreferrer">
+            <div class="link-box">
+              <div class="link-top">
+                <div class="link-title">
+                  <span class="link-status"></span>
+                  GITHUB
+                </div>
+                <span class="link-signal">▸ CONNECTED</span>
+              </div>
+              <div class="link-desc">where the code lives</div>
+              <span class="link-ascii">◈</span>
+            </div>
+          </a>
+          <a href="https://twitter.com/1fixdotio" class="link-item" target="_blank" rel="noopener noreferrer">
+            <div class="link-box">
+              <div class="link-top">
+                <div class="link-title">
+                  <span class="link-status"></span>
+                  TWITTER
+                </div>
+                <span class="link-signal">▸ CONNECTED</span>
+              </div>
+              <div class="link-desc">hot takes & cold brew</div>
+              <span class="link-ascii">◇</span>
+            </div>
+          </a>
+          <a href="https://linkedin.com/in/yorenchang" class="link-item" target="_blank" rel="noopener noreferrer">
+            <div class="link-box">
+              <div class="link-top">
+                <div class="link-title">
+                  <span class="link-status"></span>
+                  LINKEDIN
+                </div>
+                <span class="link-signal">▸ CONNECTED</span>
+              </div>
+              <div class="link-desc">the professional facade</div>
+              <span class="link-ascii">◆</span>
+            </div>
+          </a>
+          <a href="mailto:hi@yoren.sh" class="link-item">
+            <div class="link-box">
+              <div class="link-top">
+                <div class="link-title">
+                  <span class="link-status"></span>
+                  EMAIL
+                </div>
+                <span class="link-signal">▸ READY</span>
+              </div>
+              <div class="link-desc">ping me</div>
+              <span class="link-ascii">▣</span>
+            </div>
+          </a>
+        </div>
       </nav>
 
       <!-- Footer -->
