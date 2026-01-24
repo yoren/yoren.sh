@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>yoren.sh — digital consciousness</title>
-  <meta name="description" content="yoren.sh - A digital representation of Yoren on the internet. Run npx yoren in your terminal.">
+  <title>yoren.sh</title>
+  <meta name="description" content="yoren.sh - A digital presence. Run npx yoren in your terminal.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▸</text></svg>">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --amber: #ffb000;
-      --amber-dim: #cc8800;
-      --amber-glow: #ffcc00;
-      --cyan: #00ffff;
-      --cyan-dim: #008b8b;
-      --magenta: #ff00ff;
-      --bg-deep: #0a0a0c;
-      --bg-terminal: #0d0d10;
-      --scanline-opacity: 0.03;
-      --glow-intensity: 0.8;
+      --phosphor: #ffaa00;
+      --phosphor-bright: #ffcc33;
+      --phosphor-dim: #996600;
+      --phosphor-glow: rgba(255, 170, 0, 0.6);
+      --electric: #00ffd5;
+      --electric-dim: #00aa8c;
+      --warning: #ff3366;
+      --void: #050508;
+      --void-light: #0a0a0f;
+      --void-lighter: #12121a;
     }
 
     * {
@@ -32,26 +34,106 @@
 
     html {
       font-size: 16px;
+      cursor: none;
     }
 
     body {
-      background: var(--bg-deep);
-      color: var(--amber);
-      font-family: 'VT323', monospace;
+      background: var(--void);
+      color: var(--phosphor);
+      font-family: 'IBM Plex Mono', monospace;
       min-height: 100vh;
       overflow-x: hidden;
-      position: relative;
+      cursor: none;
     }
 
-    /* CRT Screen Container */
-    .crt-container {
-      position: relative;
-      min-height: 100vh;
+    /* Custom Cursor */
+    .cursor {
+      position: fixed;
+      width: 12px;
+      height: 20px;
+      background: var(--phosphor);
+      pointer-events: none;
+      z-index: 9999;
+      mix-blend-mode: difference;
+      transition: transform 0.1s ease, opacity 0.2s ease;
+    }
+
+    .cursor.clicking {
+      transform: scale(0.8);
+    }
+
+    .cursor-trail {
+      position: fixed;
+      width: 6px;
+      height: 10px;
+      background: var(--phosphor);
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.3;
+      transition: opacity 0.3s ease;
+    }
+
+    /* CRT Screen Effect */
+    .crt-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
     }
 
-    /* Scanlines Overlay */
+    .crt-screen::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(0, 0, 0, 0.15) 50%,
+        rgba(0, 0, 0, 0.6) 100%
+      );
+      pointer-events: none;
+      z-index: 1001;
+    }
+
+    /* Barrel Distortion Container */
+    .barrel-wrap {
+      position: relative;
+      min-height: 100vh;
+      transform: perspective(1000px) rotateX(1deg);
+      transform-origin: center center;
+    }
+
+    /* Scanlines */
     .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 1px,
+        rgba(0, 0, 0, 0.15) 1px,
+        rgba(0, 0, 0, 0.15) 2px
+      );
+      pointer-events: none;
+      z-index: 1002;
+      animation: scanlineMove 8s linear infinite;
+    }
+
+    @keyframes scanlineMove {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(4px); }
+    }
+
+    /* Chromatic Aberration Layer */
+    .chromatic {
       position: fixed;
       top: 0;
       left: 0;
@@ -59,52 +141,56 @@
       height: 100%;
       pointer-events: none;
       z-index: 1000;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, var(--scanline-opacity)) 0px,
-        rgba(0, 0, 0, var(--scanline-opacity)) 1px,
-        transparent 1px,
-        transparent 2px
-      );
+      background:
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02) 0%, transparent 3%, transparent 97%, rgba(0, 255, 255, 0.02) 100%);
     }
 
-    /* CRT Flicker Effect */
-    .crt-flicker {
+    /* Screen Flicker */
+    .flicker {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 999;
-      animation: flicker 0.15s infinite;
-      opacity: 0.02;
-      background: var(--amber);
+      z-index: 1003;
+      opacity: 0;
+      background: var(--phosphor);
+      animation: screenFlicker 4s ease-in-out infinite;
     }
 
-    @keyframes flicker {
-      0%, 100% { opacity: 0.02; }
-      50% { opacity: 0.04; }
+    @keyframes screenFlicker {
+      0%, 95%, 100% { opacity: 0; }
+      96% { opacity: 0.02; }
+      97% { opacity: 0; }
+      98% { opacity: 0.015; }
     }
 
-    /* Vignette Effect */
-    .vignette {
+    /* Screen Tear Effect */
+    .screen-tear {
       position: fixed;
-      top: 0;
       left: 0;
       width: 100%;
-      height: 100%;
+      height: 3px;
+      background: var(--phosphor);
       pointer-events: none;
-      z-index: 998;
-      background: radial-gradient(
-        ellipse at center,
-        transparent 0%,
-        transparent 60%,
-        rgba(0, 0, 0, 0.4) 100%
-      );
+      z-index: 1004;
+      opacity: 0;
+      transform: translateX(-5px);
+      box-shadow: 0 0 10px var(--phosphor-glow);
     }
 
-    /* Noise Texture */
+    .screen-tear.active {
+      animation: tearGlitch 0.15s ease-out;
+    }
+
+    @keyframes tearGlitch {
+      0% { opacity: 0.8; transform: translateX(-5px); }
+      50% { opacity: 0.5; transform: translateX(5px); }
+      100% { opacity: 0; transform: translateX(0); }
+    }
+
+    /* Noise Overlay */
     .noise {
       position: fixed;
       top: 0;
@@ -112,36 +198,37 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 997;
-      opacity: 0.03;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      z-index: 999;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      animation: noiseShift 0.5s steps(5) infinite;
     }
 
-    /* Main Content */
-    .terminal-wrapper {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem;
-      position: relative;
-      z-index: 10;
+    @keyframes noiseShift {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(-1%, 1%); }
+      50% { transform: translate(1%, -1%); }
+      75% { transform: translate(-1%, -1%); }
+      100% { transform: translate(1%, 1%); }
     }
 
-    /* Boot Sequence */
+    /* Boot Sequence - Full Takeover */
     .boot-sequence {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: var(--bg-deep);
+      background: var(--void);
       z-index: 2000;
       display: flex;
-      align-items: center;
-      justify-content: center;
       flex-direction: column;
-      font-family: 'VT323', monospace;
-      font-size: 1.2rem;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
+      justify-content: center;
+      padding: 2rem;
+      font-size: 1rem;
+      line-height: 1.8;
+      overflow: hidden;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
     }
 
     .boot-sequence.hidden {
@@ -149,77 +236,182 @@
       visibility: hidden;
     }
 
-    .boot-text {
-      text-align: left;
-      line-height: 1.8;
-    }
-
     .boot-line {
       opacity: 0;
-      animation: bootFadeIn 0.1s forwards;
-    }
-
-    @keyframes bootFadeIn {
-      to { opacity: 1; }
-    }
-
-    /* ASCII Art Header */
-    .ascii-header {
-      text-align: center;
-      margin-bottom: 2rem;
-      opacity: 0;
-      animation: fadeInGlow 1s ease forwards;
-      animation-delay: 2.5s;
-    }
-
-    .ascii-art {
-      font-family: 'Space Mono', monospace;
-      font-size: clamp(0.4rem, 1.5vw, 0.75rem);
-      line-height: 1.2;
       white-space: pre;
-      color: var(--amber);
-      text-shadow:
-        0 0 10px var(--amber-glow),
-        0 0 20px var(--amber-dim),
-        0 0 40px rgba(255, 176, 0, 0.3);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .boot-line.visible {
+      opacity: 1;
+    }
+
+    .boot-line .ok {
+      color: var(--electric);
+    }
+
+    .boot-line .warn {
+      color: var(--warning);
+    }
+
+    .boot-cursor {
       display: inline-block;
+      width: 10px;
+      height: 1.2em;
+      background: var(--phosphor);
+      animation: bootBlink 0.6s step-end infinite;
+      vertical-align: middle;
+      margin-left: 2px;
     }
 
-    @keyframes fadeInGlow {
-      from {
-        opacity: 0;
-        filter: blur(10px);
-      }
-      to {
-        opacity: 1;
-        filter: blur(0);
-      }
+    @keyframes bootBlink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
     }
 
-    /* System Status Bar */
-    .system-status {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      border: 1px solid var(--amber-dim);
-      margin-bottom: 2rem;
-      font-size: 1.1rem;
+    /* Main Terminal */
+    .terminal-full {
+      padding: 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ASCII Header - Custom Art */
+    .ascii-header {
+      margin-bottom: 3rem;
       opacity: 0;
-      animation: slideIn 0.5s ease forwards;
-      animation-delay: 2.8s;
-      background: rgba(255, 176, 0, 0.02);
+      transform: translateY(20px);
+      animation: revealUp 0.8s ease forwards;
+      animation-delay: 0.5s;
     }
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
+    @keyframes revealUp {
       to {
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    .ascii-portrait {
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .ascii-face {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.55rem;
+      line-height: 1.15;
+      white-space: pre;
+      color: var(--phosphor);
+      text-shadow: 0 0 15px var(--phosphor-glow);
+      flex-shrink: 0;
+    }
+
+    .header-text {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .site-title {
+      font-family: 'Silkscreen', cursive;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--phosphor) 0%, var(--phosphor-bright) 50%, var(--electric) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 20px var(--phosphor-glow));
+    }
+
+    .site-subtitle {
+      font-size: 1rem;
+      color: var(--phosphor-dim);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+
+    .tagline {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      color: var(--phosphor);
+      max-width: 400px;
+      line-height: 1.6;
+    }
+
+    .tagline .highlight {
+      color: var(--electric);
+      text-shadow: 0 0 10px var(--electric-dim);
+    }
+
+    /* Glitch Text Effect */
+    .glitch-text {
+      position: relative;
+      display: inline-block;
+    }
+
+    .glitch-text::before,
+    .glitch-text::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+    }
+
+    .glitch-text:hover::before {
+      animation: glitchTop 0.3s linear;
+      color: var(--electric);
+      z-index: -1;
+    }
+
+    .glitch-text:hover::after {
+      animation: glitchBottom 0.3s linear;
+      color: var(--warning);
+      z-index: -2;
+    }
+
+    @keyframes glitchTop {
+      0%, 100% { opacity: 0; transform: translate(0); }
+      20% { opacity: 0.8; transform: translate(-3px, -2px); }
+      40% { opacity: 0.8; transform: translate(3px, 2px); }
+      60% { opacity: 0.8; transform: translate(-2px, 1px); }
+      80% { opacity: 0.8; transform: translate(2px, -1px); }
+    }
+
+    @keyframes glitchBottom {
+      0%, 100% { opacity: 0; transform: translate(0); }
+      20% { opacity: 0.8; transform: translate(3px, 2px); }
+      40% { opacity: 0.8; transform: translate(-3px, -2px); }
+      60% { opacity: 0.8; transform: translate(2px, -1px); }
+      80% { opacity: 0.8; transform: translate(-2px, 1px); }
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--phosphor-dim);
+      border-bottom: 1px solid var(--phosphor-dim);
+      margin: 2rem 0;
+      font-size: 0.9rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 0.8s;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
 
     .status-item {
@@ -228,830 +420,1157 @@
       gap: 0.5rem;
     }
 
-    .status-dot {
+    .status-indicator {
       width: 8px;
       height: 8px;
-      background: var(--cyan);
       border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-      box-shadow: 0 0 10px var(--cyan);
+      background: var(--electric);
+      box-shadow: 0 0 10px var(--electric), 0 0 20px var(--electric-dim);
+      animation: statusPulse 2s ease-in-out infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--electric), 0 0 20px var(--electric-dim); }
+      50% { opacity: 0.6; box-shadow: 0 0 5px var(--electric); }
     }
 
     .status-label {
-      color: var(--amber-dim);
+      color: var(--phosphor-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
 
     .status-value {
-      color: var(--amber);
+      color: var(--phosphor);
     }
 
-    /* Terminal Window */
-    .terminal {
-      background: var(--bg-terminal);
-      border: 1px solid var(--amber-dim);
-      padding: 1.5rem;
-      min-height: 400px;
-      position: relative;
+    /* Interactive Terminal Section */
+    .terminal-section {
+      background: var(--void-light);
+      border: 1px solid var(--phosphor-dim);
+      margin: 2rem 0;
       opacity: 0;
-      animation: terminalBoot 0.8s ease forwards;
-      animation-delay: 3s;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 1s;
+      position: relative;
     }
 
-    @keyframes terminalBoot {
-      from {
-        opacity: 0;
-        transform: scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+    .terminal-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(255, 170, 0, 0.02) 0%, transparent 100%);
+      pointer-events: none;
     }
 
-    .terminal-header {
+    .terminal-bar {
       display: flex;
       align-items: center;
+      padding: 0.75rem 1rem;
+      background: var(--void-lighter);
+      border-bottom: 1px solid var(--phosphor-dim);
       gap: 0.5rem;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid rgba(255, 176, 0, 0.2);
     }
 
-    .terminal-dot {
+    .terminal-btn {
       width: 12px;
       height: 12px;
       border-radius: 50%;
       border: 1px solid;
     }
 
-    .terminal-dot.red { border-color: #ff5f56; background: rgba(255, 95, 86, 0.3); }
-    .terminal-dot.yellow { border-color: #ffbd2e; background: rgba(255, 189, 46, 0.3); }
-    .terminal-dot.green { border-color: #27c93f; background: rgba(39, 201, 63, 0.3); }
+    .terminal-btn.close { border-color: #ff5f56; background: rgba(255, 95, 86, 0.4); }
+    .terminal-btn.minimize { border-color: #ffbd2e; background: rgba(255, 189, 46, 0.4); }
+    .terminal-btn.maximize { border-color: #27c93f; background: rgba(39, 201, 63, 0.4); }
 
-    .terminal-title {
+    .terminal-path {
       margin-left: auto;
-      font-size: 0.9rem;
-      color: var(--amber-dim);
+      font-size: 0.85rem;
+      color: var(--phosphor-dim);
     }
 
-    .terminal-body {
-      font-size: 1.3rem;
-      line-height: 1.6;
+    .terminal-content {
+      padding: 1.5rem;
+      min-height: 350px;
+      max-height: 500px;
+      overflow-y: auto;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .terminal-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .terminal-content::-webkit-scrollbar-track {
+      background: var(--void);
+    }
+
+    .terminal-content::-webkit-scrollbar-thumb {
+      background: var(--phosphor-dim);
     }
 
     .output-line {
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.3rem;
       opacity: 0;
-      animation: typeLine 0.3s ease forwards;
+      animation: lineReveal 0.2s ease forwards;
     }
 
-    @keyframes typeLine {
+    @keyframes lineReveal {
       from { opacity: 0; transform: translateX(-5px); }
       to { opacity: 1; transform: translateX(0); }
     }
 
-    .prompt {
-      color: var(--cyan);
-    }
+    .prompt { color: var(--electric); }
+    .cmd { color: var(--phosphor-bright); }
+    .out { color: var(--phosphor); }
+    .dim { color: var(--phosphor-dim); }
+    .hl { color: var(--electric); text-shadow: 0 0 8px var(--electric-dim); }
+    .accent { color: var(--warning); }
+    .success { color: #27c93f; }
 
-    .command {
-      color: var(--amber);
-    }
-
-    .output {
-      color: var(--amber-dim);
-    }
-
-    .highlight {
-      color: var(--cyan);
-      text-shadow: 0 0 10px var(--cyan);
-    }
-
-    .accent {
-      color: var(--magenta);
-      text-shadow: 0 0 10px var(--magenta);
-    }
-
-    /* Interactive Input */
-    .input-line {
+    .input-row {
       display: flex;
       align-items: center;
       margin-top: 1rem;
     }
 
     .input-field {
+      flex: 1;
       background: transparent;
       border: none;
-      color: var(--amber);
-      font-family: 'VT323', monospace;
-      font-size: 1.3rem;
-      flex: 1;
+      color: var(--phosphor-bright);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1rem;
       outline: none;
-      caret-color: var(--amber);
+      caret-color: transparent;
     }
 
-    .cursor {
-      display: inline-block;
+    .input-cursor {
       width: 10px;
-      height: 1.3rem;
-      background: var(--amber);
-      animation: blink 1s step-end infinite;
-      margin-left: 2px;
-      vertical-align: middle;
+      height: 1.2em;
+      background: var(--phosphor);
+      animation: bootBlink 0.6s step-end infinite;
     }
 
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
-
-    /* Command Showcase */
-    .cli-showcase {
-      margin-top: 3rem;
+    /* CLI Showcase */
+    .cli-box {
+      margin: 3rem 0;
       padding: 2rem;
-      border: 1px dashed var(--amber-dim);
+      border: 2px dashed var(--phosphor-dim);
       text-align: center;
+      position: relative;
       opacity: 0;
-      animation: fadeInGlow 0.8s ease forwards;
-      animation-delay: 3.5s;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 1.2s;
       background:
-        linear-gradient(135deg, rgba(255, 176, 0, 0.02) 0%, transparent 50%),
-        linear-gradient(225deg, rgba(0, 255, 255, 0.02) 0%, transparent 50%);
+        radial-gradient(ellipse at 30% 20%, rgba(255, 170, 0, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(0, 255, 213, 0.03) 0%, transparent 50%);
     }
 
-    .cli-showcase h2 {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      font-weight: normal;
-      color: var(--amber);
+    .cli-box::before {
+      content: 'EXECUTE';
+      position: absolute;
+      top: -0.7rem;
+      left: 2rem;
+      background: var(--void);
+      padding: 0 0.5rem;
+      font-size: 0.8rem;
+      color: var(--phosphor-dim);
+      letter-spacing: 0.2em;
     }
 
-    .cli-command {
-      display: inline-block;
-      background: var(--bg-deep);
+    .cli-cmd {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--void);
       padding: 1rem 2rem;
-      border: 1px solid var(--cyan-dim);
-      font-size: 1.4rem;
+      border: 1px solid var(--electric-dim);
+      font-size: 1.3rem;
       cursor: pointer;
       transition: all 0.3s ease;
       position: relative;
-      overflow: hidden;
     }
 
-    .cli-command:hover {
-      border-color: var(--cyan);
-      box-shadow:
-        0 0 20px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.05);
-    }
-
-    .cli-command::before {
-      content: '$ ';
-      color: var(--cyan);
-    }
-
-    .cli-command .copy-hint {
-      position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.9rem;
-      color: var(--cyan);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .cli-command:hover .copy-hint {
-      opacity: 1;
-    }
-
-    .cli-command.copied .copy-hint {
-      opacity: 1;
-    }
-
-    /* Links Section */
-    .links-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-top: 2rem;
-      opacity: 0;
-      animation: fadeInGlow 0.8s ease forwards;
-      animation-delay: 3.8s;
-    }
-
-    .link-card {
-      border: 1px solid var(--amber-dim);
-      padding: 1.5rem;
-      text-decoration: none;
-      color: var(--amber);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      background: var(--bg-terminal);
-    }
-
-    .link-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 176, 0, 0.1), transparent);
-      transition: left 0.5s ease;
-    }
-
-    .link-card:hover::before {
-      left: 100%;
-    }
-
-    .link-card:hover {
-      border-color: var(--amber);
-      box-shadow: 0 0 30px rgba(255, 176, 0, 0.2);
+    .cli-cmd:hover {
+      border-color: var(--electric);
+      box-shadow: 0 0 30px rgba(0, 255, 213, 0.3), inset 0 0 30px rgba(0, 255, 213, 0.05);
       transform: translateY(-2px);
     }
 
-    .link-card h3 {
-      font-size: 1.3rem;
-      margin-bottom: 0.5rem;
-      font-weight: normal;
+    .cli-cmd .dollar {
+      color: var(--electric);
     }
 
-    .link-card p {
-      font-size: 1rem;
-      color: var(--amber-dim);
-    }
-
-    .link-card .arrow {
+    .cli-cmd .tooltip {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
-      color: var(--cyan);
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.5rem 1rem;
+      background: var(--void-lighter);
+      border: 1px solid var(--phosphor-dim);
+      font-size: 0.8rem;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .cli-cmd:hover .tooltip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-5px);
+    }
+
+    .cli-cmd.copied .tooltip {
+      color: var(--success);
+    }
+
+    .cli-note {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--phosphor-dim);
+    }
+
+    /* Links */
+    .links-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 1.4s;
+    }
+
+    .link-item {
+      display: block;
+      padding: 1.25rem;
+      background: var(--void-light);
+      border: 1px solid transparent;
+      border-left: 3px solid var(--phosphor-dim);
+      text-decoration: none;
+      color: var(--phosphor);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .link-item::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--phosphor-glow) 0%, transparent 100%);
       opacity: 0;
       transition: opacity 0.3s ease;
+      pointer-events: none;
     }
 
-    .link-card:hover .arrow {
+    .link-item:hover {
+      border-left-color: var(--electric);
+      background: var(--void-lighter);
+      transform: translateX(5px);
+    }
+
+    .link-item:hover::after {
+      opacity: 0.05;
+    }
+
+    .link-item:hover .link-arrow {
       opacity: 1;
+      transform: translateX(0);
+    }
+
+    .link-title {
+      font-family: 'Silkscreen', cursive;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .link-desc {
+      font-size: 0.85rem;
+      color: var(--phosphor-dim);
+    }
+
+    .link-arrow {
+      margin-left: auto;
+      color: var(--electric);
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: all 0.3s ease;
+    }
+
+    /* Sound Toggle */
+    .sound-toggle {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 100;
+      padding: 0.75rem 1rem;
+      background: var(--void-lighter);
+      border: 1px solid var(--phosphor-dim);
+      color: var(--phosphor);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 2s;
+    }
+
+    .sound-toggle:hover {
+      border-color: var(--phosphor);
+      box-shadow: 0 0 15px var(--phosphor-glow);
+    }
+
+    .sound-toggle.active {
+      border-color: var(--electric);
+      color: var(--electric);
     }
 
     /* Footer */
     .footer {
-      margin-top: 3rem;
-      padding-top: 2rem;
-      border-top: 1px solid rgba(255, 176, 0, 0.2);
-      text-align: center;
-      font-size: 1rem;
-      color: var(--amber-dim);
+      margin-top: 4rem;
+      padding: 2rem 0;
+      border-top: 1px solid var(--phosphor-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--phosphor-dim);
       opacity: 0;
-      animation: fadeInGlow 0.8s ease forwards;
-      animation-delay: 4s;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 1.6s;
     }
 
     .footer a {
-      color: var(--cyan);
+      color: var(--phosphor);
       text-decoration: none;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
 
     .footer a:hover {
-      text-shadow: 0 0 10px var(--cyan);
+      color: var(--electric);
+      text-shadow: 0 0 10px var(--electric-dim);
     }
 
-    /* Glitch Effect on Hover */
-    .glitch-hover {
-      position: relative;
+    .footer-right {
+      display: flex;
+      gap: 1.5rem;
     }
 
-    .glitch-hover:hover {
-      animation: glitch 0.3s ease;
+    /* Secret Easter Egg Styles */
+    .matrix-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3000;
+      background: #000;
+      display: none;
     }
 
-    @keyframes glitch {
-      0%, 100% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(2px, -2px); }
-      60% { transform: translate(-2px, -2px); }
-      80% { transform: translate(2px, 2px); }
+    .matrix-mode.active {
+      display: block;
+    }
+
+    .matrix-mode canvas {
+      display: block;
     }
 
     /* Responsive */
-    @media (max-width: 600px) {
-      .terminal-wrapper {
+    @media (max-width: 768px) {
+      .terminal-full {
         padding: 1rem;
       }
 
-      .system-status {
-        flex-direction: column;
-        gap: 0.5rem;
-        text-align: center;
+      .ascii-face {
+        font-size: 0.35rem;
       }
 
-      .ascii-art {
-        font-size: 0.35rem;
+      .ascii-portrait {
+        gap: 1.5rem;
+      }
+
+      .status-bar {
+        gap: 1rem;
+      }
+
+      .sound-toggle {
+        bottom: 1rem;
+        right: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .ascii-face {
+        display: none;
+      }
+
+      .footer {
+        flex-direction: column;
+        text-align: center;
       }
     }
 
     /* Selection */
     ::selection {
-      background: var(--amber);
-      color: var(--bg-deep);
+      background: var(--phosphor);
+      color: var(--void);
+    }
+
+    /* Hidden class */
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 <body>
-  <div class="crt-container">
-    <!-- CRT Effects -->
+  <!-- Custom Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-trail" id="cursorTrail"></div>
+
+  <!-- CRT Effects -->
+  <div class="crt-screen">
     <div class="scanlines"></div>
-    <div class="crt-flicker"></div>
-    <div class="vignette"></div>
+    <div class="chromatic"></div>
+    <div class="flicker"></div>
     <div class="noise"></div>
-
-    <!-- Boot Sequence -->
-    <div class="boot-sequence" id="bootSequence">
-      <div class="boot-text" id="bootText"></div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="terminal-wrapper">
-      <!-- ASCII Art Header -->
-      <div class="ascii-header">
-        <pre class="ascii-art">
-██╗   ██╗ ██████╗ ██████╗ ███████╗███╗   ██╗   ███████╗██╗  ██╗
-╚██╗ ██╔╝██╔═══██╗██╔══██╗██╔════╝████╗  ██║   ██╔════╝██║  ██║
- ╚████╔╝ ██║   ██║██████╔╝█████╗  ██╔██╗ ██║   ███████╗███████║
-  ╚██╔╝  ██║   ██║██╔══██╗██╔══╝  ██║╚██╗██║   ╚════██║██╔══██║
-   ██║   ╚██████╔╝██║  ██║███████╗██║ ╚████║██╗███████║██║  ██║
-   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═╝╚══════╝╚═╝  ╚═╝
-        </pre>
-        <p style="font-size: 1.2rem; color: var(--amber-dim); margin-top: 1rem;">
-          digital consciousness v1.0.0
-        </p>
-      </div>
-
-      <!-- System Status -->
-      <div class="system-status">
-        <div class="status-item">
-          <div class="status-dot"></div>
-          <span class="status-label">STATUS:</span>
-          <span class="status-value">ONLINE</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">LOCATION:</span>
-          <span class="status-value">THE INTERNET</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">UPTIME:</span>
-          <span class="status-value" id="uptime">00:00:00</span>
-        </div>
-      </div>
-
-      <!-- Terminal Window -->
-      <div class="terminal">
-        <div class="terminal-header">
-          <div class="terminal-dot red"></div>
-          <div class="terminal-dot yellow"></div>
-          <div class="terminal-dot green"></div>
-          <span class="terminal-title">yoren@internet:~</span>
-        </div>
-        <div class="terminal-body" id="terminalBody">
-          <!-- Content will be typed here -->
-        </div>
-        <div class="input-line">
-          <span class="prompt">visitor@yoren.sh:~$&nbsp;</span>
-          <input type="text" class="input-field" id="commandInput" autocomplete="off" spellcheck="false" placeholder="">
-          <span class="cursor" id="cursor"></span>
-        </div>
-      </div>
-
-      <!-- CLI Showcase -->
-      <div class="cli-showcase">
-        <h2>[ RUN ME IN YOUR TERMINAL ]</h2>
-        <div class="cli-command glitch-hover" onclick="copyCommand(this)">
-          <span class="copy-hint">click to copy</span>
-          npx yoren
-        </div>
-        <p style="margin-top: 1rem; color: var(--amber-dim); font-size: 1rem;">
-          coming soon
-        </p>
-      </div>
-
-      <!-- Links Grid -->
-      <div class="links-grid">
-        <a href="https://github.com/user/yoren" class="link-card glitch-hover" target="_blank" rel="noopener noreferrer">
-          <span class="arrow">-></span>
-          <h3>[ GITHUB ]</h3>
-          <p>code repositories</p>
-        </a>
-        <a href="https://twitter.com/user/yoren" class="link-card glitch-hover" target="_blank" rel="noopener noreferrer">
-          <span class="arrow">-></span>
-          <h3>[ TWITTER ]</h3>
-          <p>thoughts & updates</p>
-        </a>
-        <a href="https://linkedin.com/in/yoren" class="link-card glitch-hover" target="_blank" rel="noopener noreferrer">
-          <span class="arrow">-></span>
-          <h3>[ LINKEDIN ]</h3>
-          <p>professional network</p>
-        </a>
-        <a href="mailto:hello@yoren.sh" class="link-card glitch-hover">
-          <span class="arrow">-></span>
-          <h3>[ EMAIL ]</h3>
-          <p>get in touch</p>
-        </a>
-      </div>
-
-      <!-- Footer -->
-      <div class="footer">
-        <p>crafted with <span style="color: var(--magenta);">*</span> by yoren |
-        <a href="https://github.com/yoren/yoren.sh" target="_blank" rel="noopener noreferrer">source code</a></p>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem;">2024 | all systems nominal</p>
-      </div>
-    </div>
+    <div class="screen-tear" id="screenTear"></div>
   </div>
 
+  <!-- Matrix Easter Egg -->
+  <div class="matrix-mode" id="matrixMode">
+    <canvas id="matrixCanvas"></canvas>
+  </div>
+
+  <!-- Boot Sequence -->
+  <div class="boot-sequence" id="bootSequence"></div>
+
+  <!-- Main Content -->
+  <div class="barrel-wrap">
+    <main class="terminal-full" id="mainContent" style="visibility: hidden;">
+
+      <!-- ASCII Header with Portrait -->
+      <header class="ascii-header">
+        <div class="ascii-portrait">
+          <pre class="ascii-face" aria-hidden="true">
+         ████████████████
+       ██░░░░░░░░░░░░░░░░██
+      █░░░░░░░░░░░░░░░░░░░░█
+     █░░░░░░░░░░░░░░░░░░░░░░█
+    █░░░░░░░░░░░░░░░░░░░░░░░░█
+    █░░░░████░░░░░░░░████░░░░█
+    █░░░██  ██░░░░░░██  ██░░░█
+    █░░░█ ○  █░░░░░░█ ○  █░░░█
+    █░░░██  ██░░░░░░██  ██░░░█
+    █░░░░████░░░░░░░░████░░░░█
+    █░░░░░░░░░░░░░░░░░░░░░░░░█
+    █░░░░░░░░░░████░░░░░░░░░░█
+    █░░░░░░░░░░░░░░░░░░░░░░░░█
+    █░░░░░░░████████████░░░░░█
+     █░░░░░█          █░░░░░█
+      █░░░░░██████████░░░░░█
+       ██░░░░░░░░░░░░░░░░██
+         ████████████████
+          █    █  █    █
+          █    █  █    █
+         ███  ██  ██  ███</pre>
+          <div class="header-text">
+            <h1 class="site-title glitch-text" data-text="YOREN.SH">YOREN.SH</h1>
+            <p class="site-subtitle">digital consciousness</p>
+            <p class="tagline">
+              I write code that occasionally works.<br>
+              Building at the intersection of
+              <span class="highlight">curiosity</span> and <span class="highlight">caffeine</span>.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-item">
+          <div class="status-indicator"></div>
+          <span class="status-label">Status:</span>
+          <span class="status-value">OPERATIONAL</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Node:</span>
+          <span class="status-value">INTERNET</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Session:</span>
+          <span class="status-value" id="sessionTime">00:00:00</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Mood:</span>
+          <span class="status-value" id="moodStatus">CAFFEINATED</span>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <section class="terminal-section">
+        <div class="terminal-bar">
+          <div class="terminal-btn close"></div>
+          <div class="terminal-btn minimize"></div>
+          <div class="terminal-btn maximize"></div>
+          <span class="terminal-path">~/yoren.sh</span>
+        </div>
+        <div class="terminal-content" id="terminalContent"></div>
+        <div style="padding: 0 1.5rem 1.5rem;">
+          <div class="input-row">
+            <span class="prompt">visitor@yoren.sh:~$&nbsp;</span>
+            <input type="text" class="input-field" id="cmdInput" autocomplete="off" spellcheck="false" aria-label="Command input">
+            <div class="input-cursor" id="inputCursor"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLI Box -->
+      <section class="cli-box">
+        <div class="cli-cmd" id="cliCmd" role="button" tabindex="0" aria-label="Copy command to clipboard">
+          <span class="tooltip">click to copy</span>
+          <span class="dollar">$</span> npx yoren
+        </div>
+        <p class="cli-note">coming to a terminal near you</p>
+      </section>
+
+      <!-- Links -->
+      <nav class="links-section" aria-label="External links">
+        <a href="https://github.com/yoren" class="link-item" target="_blank" rel="noopener noreferrer">
+          <div class="link-title">
+            [GITHUB]
+            <span class="link-arrow">-></span>
+          </div>
+          <div class="link-desc">where the code lives</div>
+        </a>
+        <a href="https://twitter.com/1fixdotio" class="link-item" target="_blank" rel="noopener noreferrer">
+          <div class="link-title">
+            [TWITTER]
+            <span class="link-arrow">-></span>
+          </div>
+          <div class="link-desc">hot takes & cold brew</div>
+        </a>
+        <a href="https://linkedin.com/in/yorenchang" class="link-item" target="_blank" rel="noopener noreferrer">
+          <div class="link-title">
+            [LINKEDIN]
+            <span class="link-arrow">-></span>
+          </div>
+          <div class="link-desc">the professional facade</div>
+        </a>
+        <a href="mailto:yoren@1fix.io" class="link-item">
+          <div class="link-title">
+            [EMAIL]
+            <span class="link-arrow">-></span>
+          </div>
+          <div class="link-desc">ping me</div>
+        </a>
+      </nav>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="footer-left">
+          crafted with obsession by yoren | <a href="https://github.com/yoren/yoren.sh" target="_blank" rel="noopener noreferrer">view source</a>
+        </div>
+        <div class="footer-right">
+          <span>2026</span>
+          <span>all systems nominal</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Sound Toggle -->
+  <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound effects">
+    [SOUND: OFF]
+  </button>
+
+  <!-- Audio Context for Sound Effects -->
   <script>
-    // Utility: Escape HTML to prevent XSS
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
+    // Sound System
+    let audioCtx = null;
+    let soundEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
     }
 
-    // Utility: Create text node safely
-    function createTextSpan(text, className) {
+    function playBeep(freq = 800, duration = 0.05, volume = 0.1) {
+      if (!soundEnabled || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'square';
+      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playKeySound() {
+      playBeep(600 + Math.random() * 200, 0.03, 0.05);
+    }
+
+    function playEnterSound() {
+      playBeep(400, 0.1, 0.08);
+      setTimeout(() => playBeep(600, 0.1, 0.08), 50);
+    }
+
+    function playBootSound() {
+      playBeep(200, 0.2, 0.1);
+      setTimeout(() => playBeep(400, 0.15, 0.1), 100);
+      setTimeout(() => playBeep(800, 0.3, 0.1), 200);
+    }
+
+    // Sound Toggle
+    const soundToggle = document.getElementById('soundToggle');
+    soundToggle.addEventListener('click', () => {
+      initAudio();
+      soundEnabled = !soundEnabled;
+      soundToggle.textContent = soundEnabled ? '[SOUND: ON]' : '[SOUND: OFF]';
+      soundToggle.classList.toggle('active', soundEnabled);
+      if (soundEnabled) playBeep(800, 0.1, 0.1);
+    });
+  </script>
+
+  <script>
+    // Utility functions
+    function sleep(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    function createSpan(text, className) {
       const span = document.createElement('span');
       span.className = className;
       span.textContent = text;
       return span;
     }
 
-    // Boot Sequence
-    const bootLines = [
-      'BIOS v3.14.159 - YOREN SYSTEMS',
-      'Checking memory... 8192MB OK',
-      'Loading kernel...',
-      'Mounting filesystems...',
-      'Starting network services...',
-      'Initializing digital consciousness...',
-      '',
-      '> SYSTEM READY',
-      '> WELCOME TO YOREN.SH',
-      ''
-    ];
-
-    const bootSequence = document.getElementById('bootSequence');
-    const bootText = document.getElementById('bootText');
-
-    async function runBootSequence() {
-      for (let i = 0; i < bootLines.length; i++) {
-        const line = document.createElement('div');
-        line.className = 'boot-line';
-        line.style.animationDelay = `${i * 0.15}s`;
-        line.textContent = bootLines[i] || '\u00A0';
-        bootText.appendChild(line);
-        await sleep(150);
-      }
-      await sleep(800);
-      bootSequence.classList.add('hidden');
-    }
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    // Terminal Content - stored as structured data
-    const terminalContent = [
-      { type: 'output', text: '> Establishing connection...' },
-      { type: 'output', text: '> Connection established.' },
-      { type: 'output', text: '' },
-      { type: 'prompt', text: 'yoren@internet:~$ ' },
-      { type: 'command', text: 'whoami' },
-      { type: 'output', text: '' },
-      { type: 'rich', parts: [{ text: '  ', cls: 'output' }, { text: 'YOREN', cls: 'highlight' }, { text: ' — developer, creator, digital wanderer', cls: 'output' }] },
-      { type: 'output', text: '' },
-      { type: 'output', text: '  I build things for the web and beyond.' },
-      { type: 'output', text: '  Currently exploring the intersection of' },
-      { type: 'rich', parts: [{ text: '  ', cls: 'output' }, { text: 'AI', cls: 'accent' }, { text: ', ', cls: 'output' }, { text: 'code', cls: 'accent' }, { text: ', and ', cls: 'output' }, { text: 'creativity', cls: 'accent' }, { text: '.', cls: 'output' }] },
-      { type: 'output', text: '' },
-      { type: 'prompt', text: 'yoren@internet:~$ ' },
-      { type: 'command', text: 'cat interests.txt' },
-      { type: 'output', text: '' },
-      { type: 'output', text: '  -> Web Development' },
-      { type: 'output', text: '  -> Open Source' },
-      { type: 'output', text: '  -> AI & Machine Learning' },
-      { type: 'output', text: '  -> Developer Tools' },
-      { type: 'output', text: '  -> Creative Coding' },
-      { type: 'output', text: '' },
-      { type: 'prompt', text: 'yoren@internet:~$ ' },
-      { type: 'command', text: 'echo "Type a command below to interact..."' },
-      { type: 'output', text: '' },
-    ];
-
-    const terminalBody = document.getElementById('terminalBody');
-    const commandInput = document.getElementById('commandInput');
+    // Custom Cursor
     const cursor = document.getElementById('cursor');
+    const cursorTrail = document.getElementById('cursorTrail');
+    let mouseX = 0, mouseY = 0;
+    let trailX = 0, trailY = 0;
 
-    function createOutputLine() {
-      const line = document.createElement('div');
-      line.className = 'output-line';
-      return line;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursor.style.left = mouseX + 'px';
+      cursor.style.top = mouseY + 'px';
+    });
+
+    document.addEventListener('mousedown', () => cursor.classList.add('clicking'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('clicking'));
+
+    function animateTrail() {
+      trailX += (mouseX - trailX) * 0.2;
+      trailY += (mouseY - trailY) * 0.2;
+      cursorTrail.style.left = trailX + 'px';
+      cursorTrail.style.top = trailY + 'px';
+      requestAnimationFrame(animateTrail);
     }
+    animateTrail();
 
-    async function typeTerminalContent() {
-      await sleep(3200); // Wait for terminal animation
+    // Screen Tear Effect
+    const screenTear = document.getElementById('screenTear');
+    function triggerTear() {
+      screenTear.style.top = Math.random() * 100 + '%';
+      screenTear.classList.add('active');
+      setTimeout(() => screenTear.classList.remove('active'), 150);
+    }
+    setInterval(() => {
+      if (Math.random() < 0.1) triggerTear();
+    }, 3000);
 
-      for (let i = 0; i < terminalContent.length; i++) {
-        const item = terminalContent[i];
-        const line = createOutputLine();
+    // Boot Sequence
+    const bootSequence = document.getElementById('bootSequence');
+    const mainContent = document.getElementById('mainContent');
 
-        if (item.type === 'prompt') {
-          line.appendChild(createTextSpan(item.text, 'prompt'));
-          terminalBody.appendChild(line);
-        } else if (item.type === 'command') {
-          // Get last line (prompt) and append command with typing effect
-          const lastLine = terminalBody.lastElementChild;
-          const cmdSpan = createTextSpan('', 'command');
-          lastLine.appendChild(cmdSpan);
-          for (const char of item.text) {
-            cmdSpan.textContent += char;
-            await sleep(50);
-          }
-        } else if (item.type === 'rich') {
-          // Multi-part line with different styles
-          for (const part of item.parts) {
-            line.appendChild(createTextSpan(part.text, part.cls));
-          }
-          terminalBody.appendChild(line);
-        } else {
-          line.appendChild(createTextSpan(item.text || '\u00A0', 'output'));
-          terminalBody.appendChild(line);
+    const bootLines = [
+      { text: 'YOREN SYSTEMS BIOS v3.14.159', delay: 100 },
+      { text: 'Copyright (C) 2026 Yoren Industries', delay: 80 },
+      { text: '', delay: 50 },
+      { text: 'Initializing memory banks... 16384 MB ', delay: 120, append: 'OK', appendClass: 'ok' },
+      { text: 'Loading consciousness matrix... ', delay: 200, append: 'OK', appendClass: 'ok' },
+      { text: 'Mounting /dev/creativity... ', delay: 150, append: 'OK', appendClass: 'ok' },
+      { text: 'Starting neural network daemon... ', delay: 180, append: 'OK', appendClass: 'ok' },
+      { text: 'Syncing caffeine levels... ', delay: 100, append: 'CRITICAL', appendClass: 'warn' },
+      { text: 'Establishing internet presence... ', delay: 250, append: 'OK', appendClass: 'ok' },
+      { text: '', delay: 50 },
+      { text: '> All systems operational', delay: 100 },
+      { text: '> Welcome to yoren.sh', delay: 100 },
+      { text: '', delay: 300 },
+    ];
+
+    async function runBoot() {
+      for (const line of bootLines) {
+        const div = document.createElement('div');
+        div.className = 'boot-line';
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = line.text;
+        div.appendChild(textSpan);
+
+        if (line.append) {
+          const appendSpan = document.createElement('span');
+          appendSpan.className = line.appendClass;
+          appendSpan.textContent = line.append;
+          div.appendChild(appendSpan);
         }
 
-        await sleep(100);
-        terminalBody.scrollTop = terminalBody.scrollHeight;
+        // Add cursor to last line
+        if (line === bootLines[bootLines.length - 1]) {
+          const cursor = document.createElement('span');
+          cursor.className = 'boot-cursor';
+          div.appendChild(cursor);
+        }
+
+        bootSequence.appendChild(div);
+        await sleep(20);
+        div.classList.add('visible');
+        playKeySound();
+        await sleep(line.delay);
       }
 
-      commandInput.focus();
+      await sleep(500);
+      playBootSound();
+      await sleep(300);
+
+      bootSequence.classList.add('hidden');
+      mainContent.style.visibility = 'visible';
     }
 
-    // Command responses - structured for safe rendering
-    const commands = {
-      help: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { text: '  Available commands:' },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'help', cls: 'highlight' }, { text: '      — show this message', cls: 'output' }] },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'about', cls: 'highlight' }, { text: '     — learn more about me', cls: 'output' }] },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'skills', cls: 'highlight' }, { text: '    — list my technical skills', cls: 'output' }] },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'contact', cls: 'highlight' }, { text: '   — how to reach me', cls: 'output' }] },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'projects', cls: 'highlight' }, { text: '  — view my projects', cls: 'output' }] },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'clear', cls: 'highlight' }, { text: '     — clear the terminal', cls: 'output' }] },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'sudo', cls: 'highlight' }, { text: '      — ???', cls: 'output' }] },
-          { text: '' }
-        ]
-      }),
-      about: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { text: '  +======================================+' },
-          { parts: [{ text: '  |  ', cls: 'output' }, { text: 'ABOUT YOREN', cls: 'highlight' }, { text: '                         |', cls: 'output' }] },
-          { text: '  +======================================+' },
-          { text: '' },
-          { text: '  A digital craftsman passionate about' },
-          { text: '  building elegant solutions to complex' },
-          { text: '  problems. I believe in clean code,' },
-          { text: '  thoughtful design, and the power of' },
-          { text: '  open source.' },
-          { text: '' },
-          { text: '  Currently: Building cool stuff' },
-          { text: '  Previously: Building other cool stuff' },
-          { text: '' }
-        ]
-      }),
-      skills: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { parts: [{ text: '  ', cls: 'output' }, { text: '[ TECHNICAL SKILLS ]', cls: 'accent' }] },
-          { text: '' },
-          { text: '  Languages   -> JavaScript, TypeScript, Python' },
-          { text: '  Frontend    -> React, Vue, Svelte' },
-          { text: '  Backend     -> Node.js, Go, Rust' },
-          { text: '  Tools       -> Git, Docker, AWS' },
-          { text: '  Interests   -> AI/ML, WebGL, Creative Coding' },
-          { text: '' }
-        ]
-      }),
-      contact: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { parts: [{ text: '  ', cls: 'output' }, { text: '[ GET IN TOUCH ]', cls: 'accent' }] },
-          { text: '' },
-          { parts: [{ text: '  Email    -> ', cls: 'output' }, { text: 'hello@yoren.sh', cls: 'highlight' }] },
-          { parts: [{ text: '  GitHub   -> ', cls: 'output' }, { text: 'github.com/yoren', cls: 'highlight' }] },
-          { parts: [{ text: '  Twitter  -> ', cls: 'output' }, { text: '@yoren', cls: 'highlight' }] },
-          { text: '' },
-          { text: '  I\'m always open to interesting' },
-          { text: '  conversations and collaborations.' },
-          { text: '' }
-        ]
-      }),
-      projects: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { parts: [{ text: '  ', cls: 'output' }, { text: '[ FEATURED PROJECTS ]', cls: 'accent' }] },
-          { text: '' },
-          { parts: [{ text: '  -> ', cls: 'output' }, { text: 'yoren.sh', cls: 'highlight' }] },
-          { text: '    This website. Meta, right?' },
-          { text: '' },
-          { parts: [{ text: '  -> ', cls: 'output' }, { text: 'yoren-cli', cls: 'highlight' }] },
-          { text: '    Run me in your terminal (coming soon)' },
-          { text: '' },
-          { text: '  -> More projects on GitHub...' },
-          { text: '' }
-        ]
-      }),
-      sudo: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'ACCESS DENIED', cls: 'accent' }] },
-          { text: '' },
-          { text: '  Nice try, but you\'re not root here.' },
-          { text: '  This isn\'t your ordinary terminal ;)' },
-          { text: '' }
-        ]
-      }),
-      clear: () => ({ type: 'clear' }),
-      matrix: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'Wake up, Neo...', cls: 'accent' }] },
-          { text: '  The Matrix has you.' },
-          { text: '' }
-        ]
-      }),
-      hello: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { text: '  Hello there!' },
-          { text: '  Welcome to my digital space.' },
-          { text: '' }
-        ]
-      }),
-      hi: () => commands.hello(),
-      ls: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { text: '  about.txt  interests.txt  projects/' },
-          { text: '  skills.txt  contact.txt  secrets/' },
-          { text: '' }
-        ]
-      }),
-      'cat secrets/': () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { parts: [{ text: '  ', cls: 'output' }, { text: 'Permission denied:', cls: 'accent' }, { text: ' Nice try!', cls: 'output' }] },
-          { text: '' }
-        ]
-      }),
-      pwd: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { text: '  /home/visitor/yoren.sh' },
-          { text: '' }
-        ]
-      }),
-      date: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { text: '  ' + new Date().toLocaleString() },
-          { text: '' }
-        ]
-      }),
-      whoami: () => ({
-        type: 'lines',
-        lines: [
-          { text: '' },
-          { text: '  visitor — a curious soul exploring the web' },
-          { text: '' }
-        ]
-      })
-    };
+    // Terminal System
+    const terminalContent = document.getElementById('terminalContent');
+    const cmdInput = document.getElementById('cmdInput');
+    const inputCursor = document.getElementById('inputCursor');
 
-    function renderLine(lineData) {
-      const line = createOutputLine();
-      if (lineData.parts) {
+    const introLines = [
+      { type: 'dim', text: '> Connection established' },
+      { type: 'dim', text: '> Initializing session...' },
+      { type: 'out', text: '' },
+      { type: 'prompt', text: 'yoren@localhost:~$ ', cmd: 'neofetch --minimal' },
+      { type: 'out', text: '' },
+      { type: 'parts', parts: [
+        { text: '  USER     ', cls: 'dim' },
+        { text: 'yoren', cls: 'hl' }
+      ]},
+      { type: 'parts', parts: [
+        { text: '  ROLE     ', cls: 'dim' },
+        { text: 'developer / maker / internet dweller', cls: 'out' }
+      ]},
+      { type: 'parts', parts: [
+        { text: '  SHELL    ', cls: 'dim' },
+        { text: 'zsh with too many aliases', cls: 'out' }
+      ]},
+      { type: 'parts', parts: [
+        { text: '  EDITOR   ', cls: 'dim' },
+        { text: 'neovim (btw)', cls: 'out' }
+      ]},
+      { type: 'parts', parts: [
+        { text: '  UPTIME   ', cls: 'dim' },
+        { text: 'since dial-up days', cls: 'out' }
+      ]},
+      { type: 'out', text: '' },
+      { type: 'prompt', text: 'yoren@localhost:~$ ', cmd: 'cat /etc/motd' },
+      { type: 'out', text: '' },
+      { type: 'out', text: '  "Any sufficiently advanced technology' },
+      { type: 'out', text: '   is indistinguishable from a hack.' },
+      { type: 'parts', parts: [
+        { text: '   that actually works."  ', cls: 'out' },
+        { text: '- me, probably', cls: 'dim' }
+      ]},
+      { type: 'out', text: '' },
+      { type: 'parts', parts: [
+        { text: '  Type ', cls: 'dim' },
+        { text: 'help', cls: 'hl' },
+        { text: ' for available commands', cls: 'dim' }
+      ]},
+      { type: 'out', text: '' },
+    ];
+
+    function createLine(lineData) {
+      const div = document.createElement('div');
+      div.className = 'output-line';
+
+      if (lineData.type === 'parts') {
         for (const part of lineData.parts) {
-          line.appendChild(createTextSpan(part.text, part.cls));
+          div.appendChild(createSpan(part.text, part.cls));
+        }
+      } else if (lineData.type === 'prompt') {
+        div.appendChild(createSpan(lineData.text, 'prompt'));
+        if (lineData.cmd) {
+          div.appendChild(createSpan(lineData.cmd, 'cmd'));
         }
       } else {
-        line.appendChild(createTextSpan(lineData.text || '\u00A0', 'output'));
+        div.appendChild(createSpan(lineData.text || '\u00A0', lineData.type));
       }
-      return line;
+
+      return div;
     }
 
-    commandInput.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
-        const cmd = commandInput.value.trim().toLowerCase();
-        commandInput.value = '';
+    async function typeIntro() {
+      await sleep(800);
+      for (const line of introLines) {
+        terminalContent.appendChild(createLine(line));
+        terminalContent.scrollTop = terminalContent.scrollHeight;
+        await sleep(60);
+      }
+      cmdInput.focus();
+    }
 
-        // Add command to terminal safely
-        const promptLine = createOutputLine();
-        promptLine.appendChild(createTextSpan('visitor@yoren.sh:~$ ', 'prompt'));
-        promptLine.appendChild(createTextSpan(cmd || '\u00A0', 'command'));
-        terminalBody.appendChild(promptLine);
+    // Command System
+    const commands = {
+      help: () => [
+        { type: 'out', text: '' },
+        { type: 'out', text: '  AVAILABLE COMMANDS:' },
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  help      ', cls: 'hl' }, { text: 'show this message', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  about     ', cls: 'hl' }, { text: 'who am i', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  skills    ', cls: 'hl' }, { text: 'technical abilities', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  projects  ', cls: 'hl' }, { text: 'things i\'ve built', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  contact   ', cls: 'hl' }, { text: 'reach out', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  clear     ', cls: 'hl' }, { text: 'clear terminal', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  secret    ', cls: 'hl' }, { text: '???', cls: 'dim' }] },
+        { type: 'out', text: '' },
+      ],
+      about: () => [
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  ┌─ ', cls: 'dim' }, { text: 'ABOUT', cls: 'hl' }, { text: ' ─────────────────────────────┐', cls: 'dim' }] },
+        { type: 'out', text: '  │                                          │' },
+        { type: 'out', text: '  │  Developer by trade, tinkerer by nature. │' },
+        { type: 'out', text: '  │  I believe in shipping fast, breaking    │' },
+        { type: 'out', text: '  │  things thoughtfully, and documentation  │' },
+        { type: 'out', text: '  │  that actually helps.                    │' },
+        { type: 'out', text: '  │                                          │' },
+        { type: 'out', text: '  │  Currently obsessed with AI agents,      │' },
+        { type: 'out', text: '  │  developer experience, and making        │' },
+        { type: 'out', text: '  │  the terminal cool again.                │' },
+        { type: 'out', text: '  │                                          │' },
+        { type: 'parts', parts: [{ text: '  └──────────────────────────────────────────┘', cls: 'dim' }] },
+        { type: 'out', text: '' },
+      ],
+      skills: () => [
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  LANGUAGES   ', cls: 'hl' }, { text: 'TypeScript, Python, Go, Rust', cls: 'out' }] },
+        { type: 'parts', parts: [{ text: '  FRONTEND    ', cls: 'hl' }, { text: 'React, Vue, Svelte, vanilla JS', cls: 'out' }] },
+        { type: 'parts', parts: [{ text: '  BACKEND     ', cls: 'hl' }, { text: 'Node.js, FastAPI, PostgreSQL', cls: 'out' }] },
+        { type: 'parts', parts: [{ text: '  DEVOPS      ', cls: 'hl' }, { text: 'Docker, K8s, AWS, Terraform', cls: 'out' }] },
+        { type: 'parts', parts: [{ text: '  INTERESTS   ', cls: 'hl' }, { text: 'AI/ML, WebGL, CLI tools', cls: 'out' }] },
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  Currently leveling up: ', cls: 'dim' }, { text: 'LLM agents & embeddings', cls: 'accent' }] },
+        { type: 'out', text: '' },
+      ],
+      projects: () => [
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  [01] ', cls: 'dim' }, { text: 'yoren.sh', cls: 'hl' }] },
+        { type: 'dim', text: '       This website. You\'re looking at it.' },
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  [02] ', cls: 'dim' }, { text: 'yoren-cli', cls: 'hl' }] },
+        { type: 'dim', text: '       Run `npx yoren` in your terminal (soon)' },
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  [03] ', cls: 'dim' }, { text: '???', cls: 'hl' }] },
+        { type: 'dim', text: '       Something cool is cooking...' },
+        { type: 'out', text: '' },
+        { type: 'dim', text: '  More at github.com/yoren' },
+        { type: 'out', text: '' },
+      ],
+      contact: () => [
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  EMAIL    ', cls: 'dim' }, { text: 'hello@yoren.sh', cls: 'hl' }] },
+        { type: 'parts', parts: [{ text: '  GITHUB   ', cls: 'dim' }, { text: 'github.com/yoren', cls: 'out' }] },
+        { type: 'parts', parts: [{ text: '  TWITTER  ', cls: 'dim' }, { text: '@yoren', cls: 'out' }] },
+        { type: 'out', text: '' },
+        { type: 'dim', text: '  DMs open. Email preferred for serious inquiries.' },
+        { type: 'out', text: '' },
+      ],
+      clear: () => 'CLEAR',
+      secret: () => [
+        { type: 'out', text: '' },
+        { type: 'accent', text: '  > ACCESS GRANTED' },
+        { type: 'out', text: '' },
+        { type: 'dim', text: '  Hidden commands unlocked:' },
+        { type: 'parts', parts: [{ text: '  matrix    ', cls: 'hl' }, { text: 'take the red pill', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  konami    ', cls: 'hl' }, { text: '↑↑↓↓←→←→BA', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  coffee    ', cls: 'hl' }, { text: 'essential fuel', cls: 'dim' }] },
+        { type: 'parts', parts: [{ text: '  hack      ', cls: 'hl' }, { text: 'access mainframe', cls: 'dim' }] },
+        { type: 'out', text: '' },
+      ],
+      matrix: () => {
+        startMatrix();
+        return [{ type: 'success', text: '  Entering the Matrix...' }];
+      },
+      konami: () => [
+        { type: 'out', text: '' },
+        { type: 'success', text: '  ★ KONAMI CODE ACCEPTED ★' },
+        { type: 'out', text: '' },
+        { type: 'out', text: '  +30 lives granted' },
+        { type: 'out', text: '  (not that you needed them)' },
+        { type: 'out', text: '' },
+      ],
+      coffee: () => [
+        { type: 'out', text: '' },
+        { type: 'out', text: '         ) )' },
+        { type: 'out', text: '        ( (' },
+        { type: 'out', text: '      ........' },
+        { type: 'out', text: '      |      |]' },
+        { type: 'out', text: '      \\      /' },
+        { type: 'out', text: '       `----\'' },
+        { type: 'out', text: '' },
+        { type: 'parts', parts: [{ text: '  CAFFEINE LEVEL: ', cls: 'dim' }, { text: '████████░░', cls: 'success' }, { text: ' 80%', cls: 'out' }] },
+        { type: 'out', text: '' },
+      ],
+      hack: () => [
+        { type: 'out', text: '' },
+        { type: 'accent', text: '  ACCESSING MAINFRAME...' },
+        { type: 'dim', text: '  Bypassing firewall... done' },
+        { type: 'dim', text: '  Cracking encryption... done' },
+        { type: 'dim', text: '  Downloading secrets...' },
+        { type: 'out', text: '' },
+        { type: 'success', text: '  JK. This is a personal website.' },
+        { type: 'dim', text: '  Nice try though :)' },
+        { type: 'out', text: '' },
+      ],
+      sudo: () => [
+        { type: 'out', text: '' },
+        { type: 'accent', text: '  Permission denied: nice try' },
+        { type: 'out', text: '' },
+      ],
+      ls: () => [
+        { type: 'out', text: '' },
+        { type: 'out', text: '  about.md  projects/  skills.json  .secrets/' },
+        { type: 'out', text: '' },
+      ],
+      pwd: () => [
+        { type: 'out', text: '' },
+        { type: 'out', text: '  /home/visitor/yoren.sh' },
+        { type: 'out', text: '' },
+      ],
+      whoami: () => [
+        { type: 'out', text: '' },
+        { type: 'out', text: '  visitor - a curious soul exploring the web' },
+        { type: 'out', text: '' },
+      ],
+      date: () => [
+        { type: 'out', text: '' },
+        { type: 'out', text: '  ' + new Date().toString() },
+        { type: 'out', text: '' },
+      ],
+      exit: () => [
+        { type: 'out', text: '' },
+        { type: 'dim', text: '  There is no escape.' },
+        { type: 'dim', text: '  (Try closing the tab instead)' },
+        { type: 'out', text: '' },
+      ],
+      vim: () => [
+        { type: 'out', text: '' },
+        { type: 'accent', text: '  You are now trapped in vim.' },
+        { type: 'dim', text: '  Good luck.' },
+        { type: 'out', text: '' },
+      ],
+      emacs: () => [
+        { type: 'out', text: '' },
+        { type: 'dim', text: '  A great operating system,' },
+        { type: 'dim', text: '  lacking only a decent text editor.' },
+        { type: 'out', text: '' },
+      ],
+    };
+
+    cmdInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const cmd = cmdInput.value.trim().toLowerCase();
+        cmdInput.value = '';
+        playEnterSound();
+
+        // Show command
+        const cmdLine = document.createElement('div');
+        cmdLine.className = 'output-line';
+        cmdLine.appendChild(createSpan('visitor@yoren.sh:~$ ', 'prompt'));
+        cmdLine.appendChild(createSpan(cmd || '\u00A0', 'cmd'));
+        terminalContent.appendChild(cmdLine);
 
         if (cmd) {
           const handler = commands[cmd];
-
           if (handler) {
             const result = handler();
-
-            if (result.type === 'clear') {
-              terminalBody.textContent = '';
-            } else if (result.type === 'lines') {
-              for (const lineData of result.lines) {
-                terminalBody.appendChild(renderLine(lineData));
+            if (result === 'CLEAR') {
+              terminalContent.textContent = '';
+            } else if (Array.isArray(result)) {
+              for (const line of result) {
+                terminalContent.appendChild(createLine(line));
                 await sleep(30);
               }
             }
           } else {
-            const errorLine = createOutputLine();
-            errorLine.appendChild(createTextSpan('  Command not found: ' + cmd, 'output'));
-            terminalBody.appendChild(errorLine);
-
-            const hintLine = createOutputLine();
-            const hintSpan1 = createTextSpan('  Type ', 'output');
-            const hintSpan2 = createTextSpan('help', 'highlight');
-            const hintSpan3 = createTextSpan(' for available commands.', 'output');
-            hintLine.appendChild(hintSpan1);
-            hintLine.appendChild(hintSpan2);
-            hintLine.appendChild(hintSpan3);
-            terminalBody.appendChild(hintLine);
+            const errLine = createLine({ type: 'dim', text: '  Command not found: ' + cmd });
+            terminalContent.appendChild(errLine);
+            const hintLine = document.createElement('div');
+            hintLine.className = 'output-line';
+            hintLine.appendChild(createSpan('  Type ', 'dim'));
+            hintLine.appendChild(createSpan('help', 'hl'));
+            hintLine.appendChild(createSpan(' for commands', 'dim'));
+            terminalContent.appendChild(hintLine);
           }
         }
 
-        terminalBody.scrollTop = terminalBody.scrollHeight;
+        terminalContent.scrollTop = terminalContent.scrollHeight;
+      } else {
+        playKeySound();
       }
     });
 
-    // Focus input when clicking terminal
-    document.querySelector('.terminal').addEventListener('click', () => {
-      commandInput.focus();
-    });
+    // Focus input on terminal click
+    document.querySelector('.terminal-section').addEventListener('click', () => cmdInput.focus());
 
-    // Hide cursor when input is focused
-    commandInput.addEventListener('focus', () => {
-      cursor.style.display = 'none';
-    });
+    // Hide custom cursor in input
+    cmdInput.addEventListener('focus', () => inputCursor.style.display = 'none');
+    cmdInput.addEventListener('blur', () => inputCursor.style.display = 'block');
 
-    commandInput.addEventListener('blur', () => {
-      cursor.style.display = 'inline-block';
-    });
-
-    // Uptime Counter
-    let seconds = 0;
-    const uptimeEl = document.getElementById('uptime');
-
+    // Session Timer
+    let sessionSeconds = 0;
+    const sessionEl = document.getElementById('sessionTime');
     setInterval(() => {
-      seconds++;
-      const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-      const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-      const s = (seconds % 60).toString().padStart(2, '0');
-      uptimeEl.textContent = `${h}:${m}:${s}`;
+      sessionSeconds++;
+      const h = String(Math.floor(sessionSeconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((sessionSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(sessionSeconds % 60).padStart(2, '0');
+      sessionEl.textContent = `${h}:${m}:${s}`;
     }, 1000);
 
-    // Copy Command
-    function copyCommand(el) {
+    // Mood rotation
+    const moods = ['CAFFEINATED', 'FOCUSED', 'CURIOUS', 'BUILDING', 'DEBUGGING', 'SHIPPING'];
+    let moodIndex = 0;
+    const moodEl = document.getElementById('moodStatus');
+    setInterval(() => {
+      moodIndex = (moodIndex + 1) % moods.length;
+      moodEl.textContent = moods[moodIndex];
+    }, 8000);
+
+    // CLI Copy
+    const cliCmd = document.getElementById('cliCmd');
+    cliCmd.addEventListener('click', () => {
       navigator.clipboard.writeText('npx yoren');
-      el.classList.add('copied');
-      const hint = el.querySelector('.copy-hint');
-      hint.textContent = 'copied!';
+      const tooltip = cliCmd.querySelector('.tooltip');
+      tooltip.textContent = 'copied!';
+      cliCmd.classList.add('copied');
+      playBeep(1000, 0.1, 0.1);
       setTimeout(() => {
-        el.classList.remove('copied');
-        hint.textContent = 'click to copy';
+        tooltip.textContent = 'click to copy';
+        cliCmd.classList.remove('copied');
       }, 2000);
+    });
+
+    cliCmd.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        cliCmd.click();
+      }
+    });
+
+    // Matrix Easter Egg
+    const matrixMode = document.getElementById('matrixMode');
+    const matrixCanvas = document.getElementById('matrixCanvas');
+    let matrixRunning = false;
+
+    function startMatrix() {
+      matrixMode.classList.add('active');
+      matrixRunning = true;
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+      const ctx = matrixCanvas.getContext('2d');
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
+      const fontSize = 14;
+      const columns = matrixCanvas.width / fontSize;
+      const drops = Array(Math.floor(columns)).fill(1);
+
+      function drawMatrix() {
+        if (!matrixRunning) return;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+        ctx.fillStyle = '#0f0';
+        ctx.font = fontSize + 'px monospace';
+        for (let i = 0; i < drops.length; i++) {
+          const char = chars[Math.floor(Math.random() * chars.length)];
+          ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+          if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+        requestAnimationFrame(drawMatrix);
+      }
+
+      drawMatrix();
+
+      // Exit on click or key
+      const exitMatrix = () => {
+        matrixRunning = false;
+        matrixMode.classList.remove('active');
+        matrixMode.removeEventListener('click', exitMatrix);
+        document.removeEventListener('keydown', exitMatrix);
+      };
+      setTimeout(() => {
+        matrixMode.addEventListener('click', exitMatrix);
+        document.addEventListener('keydown', exitMatrix);
+      }, 500);
     }
 
+    // Konami Code
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+    let konamiIndex = 0;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+          konamiIndex = 0;
+          // Trigger konami effect
+          document.body.style.animation = 'rainbow 0.5s linear 3';
+          playBeep(523, 0.1, 0.2);
+          setTimeout(() => playBeep(659, 0.1, 0.2), 100);
+          setTimeout(() => playBeep(784, 0.1, 0.2), 200);
+          setTimeout(() => playBeep(1047, 0.2, 0.2), 300);
+          setTimeout(() => {
+            document.body.style.animation = '';
+          }, 1500);
+        }
+      } else {
+        konamiIndex = 0;
+      }
+    });
+
+    // Rainbow animation for konami
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes rainbow {
+        0% { filter: hue-rotate(0deg); }
+        100% { filter: hue-rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+
     // Initialize
-    runBootSequence();
-    typeTerminalContent();
+    runBoot().then(typeIntro);
   </script>
 </body>
 </html>
