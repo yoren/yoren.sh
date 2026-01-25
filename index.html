@@ -1054,6 +1054,19 @@
       color: var(--electric);
     }
 
+    /* Hide custom cursor on touch/mobile devices */
+    @media (hover: none), (pointer: coarse) {
+      html,
+      body {
+        cursor: auto !important;
+      }
+
+      .cursor,
+      .cursor-trail {
+        display: none !important;
+      }
+    }
+
     /* Accessibility: Reduced motion */
     @media (prefers-reduced-motion: reduce) {
       *,
