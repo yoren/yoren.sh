@@ -1790,10 +1790,15 @@
       return currentCwd;
     }
 
+    // Escape a string for safe use in single-quoted shell arguments
+    function shellEscape(str) {
+      return "'" + str.replace(/'/g, "'\\''") + "'";
+    }
+
     // Execute a command in the tracked cwd, and capture the new cwd after
     async function bashExec(cmd) {
       const expanded = expandAliases(cmd);
-      const wrapped = 'cd "' + currentCwd + '" && ' + expanded + '; echo "' + CWD_MARKER + '"; pwd';
+      const wrapped = 'cd ' + shellEscape(currentCwd) + ' && ' + expanded + '; echo "' + CWD_MARKER + '"; pwd';
       const result = await bashEnv.exec(wrapped);
       let stdout = result.stdout || '';
       // Extract cwd from the end of stdout
@@ -1802,8 +1807,14 @@
         const cwdLine = stdout.substring(markerPos + CWD_MARKER.length + 1).trim();
         stdout = stdout.substring(0, markerPos);
         if (cwdLine) currentCwd = cwdLine;
-      } else if (stdout.endsWith(CWD_MARKER)) {
-        stdout = stdout.substring(0, stdout.length - CWD_MARKER.length);
+      } else {
+        // Handle case where marker appears without trailing newline
+        const markerOnly = stdout.lastIndexOf(CWD_MARKER);
+        if (markerOnly >= 0) {
+          const cwdLine = stdout.substring(markerOnly + CWD_MARKER.length).trim();
+          stdout = stdout.substring(0, markerOnly);
+          if (cwdLine) currentCwd = cwdLine;
+        }
       }
       return { stdout, stderr: result.stderr || '' };
     }
@@ -1861,7 +1872,7 @@
         const parts = input.split(/\s+/);
         if (parts.length <= 1) {
           try {
-            const result = await bashEnv.exec('cd "' + currentCwd + '" && compgen -ac "' + parts[0] + '" 2>/dev/null | sort -u | head -20');
+            const result = await bashEnv.exec('cd ' + shellEscape(currentCwd) + ' && compgen -ac ' + shellEscape(parts[0]) + ' 2>/dev/null | sort -u | head -20');
             const bashCompletions = result.stdout.trim().split('\n').filter(Boolean);
             // Add matching alias names
             const aliasMatches = Object.keys(jsAliases).filter(function(a) { return a.startsWith(parts[0]); });
@@ -1887,7 +1898,7 @@
           const dir = partial.includes('/') ? partial.substring(0, partial.lastIndexOf('/') + 1) : '';
           const prefix = partial.includes('/') ? partial.substring(partial.lastIndexOf('/') + 1) : partial;
           const lsTarget = dir || '.';
-          const result = await bashEnv.exec('cd "' + currentCwd + '" && ls -1a "' + lsTarget + '" 2>/dev/null');
+          const result = await bashEnv.exec('cd ' + shellEscape(currentCwd) + ' && ls -1a ' + shellEscape(lsTarget) + ' 2>/dev/null');
           const entries = result.stdout.trim().split('\n').filter(function(e) { return e && e !== '.' && e !== '..'; });
           const completions = prefix ? entries.filter(function(e) { return e.startsWith(prefix); }) : entries;
           if (completions.length === 1) {
