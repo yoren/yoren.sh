@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>yoren.sh</title>
   <meta name="description" content="yoren.sh - A digital presence. Run npx yoren in your terminal.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▸</text></svg>">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1192,13 +1192,13 @@
           <div class="terminal-btn close"></div>
           <div class="terminal-btn minimize"></div>
           <div class="terminal-btn maximize"></div>
-          <span class="terminal-path">~/yoren.sh</span>
+          <span class="terminal-path" id="terminalPath">~</span>
         </div>
         <div class="terminal-content" id="terminalContent" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Terminal output"></div>
         <div style="padding: 0 1.5rem 1.5rem;">
           <div class="input-row">
             <label for="cmdInput" class="sr-only">Terminal command input</label>
-            <span class="prompt" aria-hidden="true">visitor@yoren.sh:~$&nbsp;</span>
+            <span class="prompt" id="promptText" aria-hidden="true">visitor@yoren.sh:~$&nbsp;</span>
             <div class="input-wrapper">
               <input type="text" class="input-field" id="cmdInput" autocomplete="off" spellcheck="false" aria-label="Command input">
               <div class="input-cursor" id="inputCursor" aria-hidden="true"></div>
@@ -1554,7 +1554,9 @@
       { type: 'parts', parts: [
         { text: '  Type ', cls: 'dim' },
         { text: 'help', cls: 'hl' },
-        { text: ' for available commands', cls: 'dim' }
+        { text: ' for commands. This is a ', cls: 'dim' },
+        { text: 'real bash', cls: 'hl' },
+        { text: ' environment.', cls: 'dim' }
       ]},
       { type: 'out', text: '' },
     ];
@@ -1589,7 +1591,341 @@
       cmdInput.focus();
     }
 
-    // Command System
+    // ===== just-bash Integration =====
+    let bashEnv = null;
+    let bashReady = false;
+    const promptEl = document.getElementById('promptText');
+    const terminalPathEl = document.getElementById('terminalPath');
+
+    // Virtual filesystem content
+    const fsContent = {
+      '/home/visitor/about.md': [
+        '# About',
+        '',
+        'Developer by trade, tinkerer by nature.',
+        '',
+        'I believe in shipping fast, breaking things thoughtfully,',
+        'and documentation that actually helps.',
+        '',
+        'Currently obsessed with AI agents, developer experience,',
+        'and making the terminal cool again.',
+      ].join('\n'),
+
+      '/home/visitor/skills.json': JSON.stringify({
+        languages: ['TypeScript', 'Python', 'PHP', 'HTML'],
+        frontend: ['React', 'Vue', 'Vanilla JS'],
+        backend: ['Node.js', 'FastAPI', 'PostgreSQL'],
+        devops: ['Docker', 'Vercel', 'AWS', 'Cloudflare'],
+        interests: ['AI/ML', 'Cooking', 'CLI tools'],
+        currently_leveling_up: 'LLM agents & Solution Architect',
+      }, null, 2),
+
+      '/home/visitor/contact.txt': [
+        'EMAIL    hi@yoren.sh',
+        'GITHUB   github.com/yoren',
+        'TWITTER  @1fixdotio',
+        '',
+        'DMs open. Email preferred for serious inquiries.',
+      ].join('\n'),
+
+      '/home/visitor/README.md': [
+        'Welcome to yoren.sh',
+        '====================',
+        '',
+        'This is a real bash environment powered by just-bash.',
+        'You have 70+ commands at your fingertips.',
+        '',
+        'Try these:',
+        '',
+        '  ls              list files',
+        '  cat about.md    read a file',
+        '  cd projects     navigate directories',
+        '  tree            show file tree',
+        '  grep -r "AI" .  search files',
+        '  echo $USER      print variables',
+        '  jq . skills.json  parse JSON',
+        '',
+        'Portfolio shortcuts (aliases):',
+        '',
+        '  about           cat ~/about.md',
+        '  skills          cat ~/skills.json',
+        '  projects        ls ~/projects/',
+        '  contact         cat ~/contact.txt',
+        '',
+        'Easter eggs:',
+        '',
+        '  secret          unlock hidden commands',
+        '  matrix          take the red pill',
+        '  coffee          essential fuel',
+        '  hack            access mainframe',
+      ].join('\n'),
+
+      '/home/visitor/.bashrc': [
+        "alias about='cat ~/about.md'",
+        "alias skills='cat ~/skills.json'",
+        "alias projects='ls ~/projects/'",
+        "alias contact='cat ~/contact.txt'",
+        "alias help='cat ~/README.md'",
+        "alias ll='ls -la'",
+        "alias la='ls -a'",
+      ].join('\n'),
+
+      '/home/visitor/projects/README.md': [
+        '# Projects',
+        '',
+        '[01] yoren.sh',
+        '     This website. You\'re looking at it.',
+        '',
+        '[02] yoren-cli',
+        '     Run `npx yoren` in your terminal',
+        '',
+        '[03] ???',
+        '     Something cool is cooking...',
+        '',
+        'More at github.com/yoren',
+      ].join('\n'),
+
+      '/home/visitor/projects/yoren-sh.md': [
+        '# yoren.sh',
+        '',
+        'A CRT-style terminal portfolio website.',
+        'Built with vanilla HTML, CSS, and JavaScript.',
+        'Powered by just-bash for real shell commands.',
+        '',
+        'Features:',
+        '- Real bash environment (70+ commands)',
+        '- CRT screen effects (scanlines, chromatic aberration)',
+        '- Sound effects (Web Audio API)',
+        '- Easter eggs (matrix, konami code)',
+        '- Fully accessible (WCAG compliant)',
+        '',
+        'Source: github.com/yoren/yoren.sh',
+      ].join('\n'),
+
+      '/home/visitor/projects/yoren-cli.md': [
+        '# yoren-cli',
+        '',
+        'A CLI business card. Run `npx yoren` to try it.',
+        '',
+        'Built with Node.js. Zero dependencies.',
+        'Requires Node.js >= 22.',
+      ].join('\n'),
+
+      '/home/visitor/.secrets/README.md': [
+        'You found the secrets directory!',
+        '',
+        'Try these commands in the terminal:',
+        '  matrix    - enter the Matrix',
+        '  coffee    - check caffeine levels',
+        '  hack      - access the mainframe',
+        '  konami    - use keyboard arrows',
+        '',
+        'Also try: vim, emacs, sudo, exit',
+      ].join('\n'),
+
+      '/etc/motd': [
+        '"Any sufficiently advanced technology',
+        ' is indistinguishable from a hack',
+        ' that actually works."  - me, probably',
+      ].join('\n'),
+    };
+
+    // Initialize just-bash (loads in background during boot sequence)
+    (async function initBash() {
+      try {
+        const { Bash, InMemoryFs } = await import('https://esm.sh/just-bash@2/browser');
+        const fs = new InMemoryFs(fsContent);
+        bashEnv = new Bash({
+          fs,
+          cwd: '/home/visitor',
+          env: {
+            HOME: '/home/visitor',
+            USER: 'visitor',
+            HOSTNAME: 'yoren.sh',
+            SHELL: '/bin/bash',
+            EDITOR: 'vim',
+            TERM: 'xterm-256color',
+          },
+        });
+        // Aliases handled in JS via jsAliases map (just-bash doesn't persist alias state)
+        bashReady = true;
+        updatePrompt();
+      } catch (err) {
+        console.error('Failed to load just-bash:', err);
+      }
+    })();
+
+    // Command history
+    const cmdHistory = [];
+    let historyIndex = -1;
+    let savedInput = '';
+
+    // Track cwd ourselves (just-bash doesn't persist cwd between exec calls)
+    let currentCwd = '/home/visitor';
+    const CWD_MARKER = '__YOREN_CWD_a7f3__';
+
+    // JS-level aliases (just-bash doesn't support alias expansion)
+    const jsAliases = {
+      'about': 'cat ~/about.md',
+      'skills': 'cat ~/skills.json',
+      'projects': 'ls ~/projects/',
+      'contact': 'cat ~/contact.txt',
+      'help': 'cat ~/README.md',
+      'll': 'ls -la',
+      'la': 'ls -a',
+    };
+
+    function expandAliases(cmd) {
+      const trimmed = cmd.trim();
+      const spaceIdx = trimmed.indexOf(' ');
+      const firstWord = spaceIdx >= 0 ? trimmed.substring(0, spaceIdx) : trimmed;
+      const rest = spaceIdx >= 0 ? trimmed.substring(spaceIdx) : '';
+      if (jsAliases[firstWord]) {
+        return jsAliases[firstWord] + rest;
+      }
+      return cmd;
+    }
+
+    function getBashCwd() {
+      return currentCwd;
+    }
+
+    // Escape a string for safe use in single-quoted shell arguments
+    function shellEscape(str) {
+      return "'" + str.replace(/'/g, "'\\''") + "'";
+    }
+
+    // Execute a command in the tracked cwd, and capture the new cwd after
+    async function bashExec(cmd) {
+      const expanded = expandAliases(cmd);
+      const wrapped = 'cd ' + shellEscape(currentCwd) + ' && ' + expanded + '\necho "' + CWD_MARKER + '"\npwd';
+      const result = await bashEnv.exec(wrapped);
+      let stdout = result.stdout || '';
+      // Extract cwd from the end of stdout
+      const markerPos = stdout.lastIndexOf(CWD_MARKER + '\n');
+      if (markerPos >= 0) {
+        const cwdLine = stdout.substring(markerPos + CWD_MARKER.length + 1).trim();
+        stdout = stdout.substring(0, markerPos);
+        if (cwdLine) currentCwd = cwdLine;
+      } else {
+        // Handle case where marker appears without trailing newline
+        const markerOnly = stdout.lastIndexOf(CWD_MARKER);
+        if (markerOnly >= 0) {
+          const cwdLine = stdout.substring(markerOnly + CWD_MARKER.length).trim();
+          stdout = stdout.substring(0, markerOnly);
+          if (cwdLine) currentCwd = cwdLine;
+        }
+      }
+      return { stdout, stderr: result.stderr || '' };
+    }
+
+    // Get display path (replace home dir with ~)
+    function getDisplayPath(cwd) {
+      if (!cwd) return '~';
+      const home = '/home/visitor';
+      if (cwd === home) return '~';
+      if (cwd.startsWith(home + '/')) return '~' + cwd.slice(home.length);
+      return cwd;
+    }
+
+    // Update prompt to reflect current working directory
+    function updatePrompt() {
+      const displayPath = getDisplayPath(currentCwd);
+      promptEl.textContent = 'visitor@yoren.sh:' + displayPath + '$ \u00A0';
+      terminalPathEl.textContent = displayPath;
+    }
+
+    // Render stdout/stderr from bash to terminal
+    function renderOutput(stdout, stderr) {
+      if (stdout) {
+        const lines = stdout.endsWith('\n') ? stdout.slice(0, -1).split('\n') : stdout.split('\n');
+        for (const line of lines) {
+          terminalContent.appendChild(createLine({ type: 'out', text: line }));
+        }
+      }
+      if (stderr) {
+        const lines = stderr.endsWith('\n') ? stderr.slice(0, -1).split('\n') : stderr.split('\n');
+        for (const line of lines) {
+          terminalContent.appendChild(createLine({ type: 'accent', text: line }));
+        }
+      }
+    }
+
+    // Find common prefix of an array of strings
+    function commonPrefix(strings) {
+      if (strings.length === 0) return '';
+      let prefix = strings[0];
+      for (let i = 1; i < strings.length; i++) {
+        while (!strings[i].startsWith(prefix)) {
+          prefix = prefix.slice(0, -1);
+          if (!prefix) return '';
+        }
+      }
+      return prefix;
+    }
+
+    // Tab completion handler
+    async function handleTabCompletion() {
+      const input = cmdInput.value;
+      if (!input) return;
+      try {
+        const parts = input.split(/\s+/);
+        if (parts.length <= 1) {
+          try {
+            const result = await bashEnv.exec('cd ' + shellEscape(currentCwd) + ' && compgen -ac ' + shellEscape(parts[0]) + ' 2>/dev/null | sort -u | head -20');
+            const bashCompletions = result.stdout.trim().split('\n').filter(Boolean);
+            // Add matching alias names
+            const aliasMatches = Object.keys(jsAliases).filter(function(a) { return a.startsWith(parts[0]); });
+            const completions = Array.from(new Set(bashCompletions.concat(aliasMatches))).sort();
+            if (completions.length === 1) {
+              cmdInput.value = completions[0] + ' ';
+              resizeInput();
+            } else if (completions.length > 1) {
+              const cp = commonPrefix(completions);
+              if (cp.length > parts[0].length) {
+                cmdInput.value = cp;
+                resizeInput();
+              }
+              const line = document.createElement('div');
+              line.className = 'output-line';
+              line.appendChild(createSpan(completions.join('  '), 'dim'));
+              terminalContent.appendChild(line);
+              terminalContent.scrollTop = terminalContent.scrollHeight;
+            }
+          } catch { /* compgen not available */ }
+        } else {
+          const partial = parts[parts.length - 1];
+          const dir = partial.includes('/') ? partial.substring(0, partial.lastIndexOf('/') + 1) : '';
+          const prefix = partial.includes('/') ? partial.substring(partial.lastIndexOf('/') + 1) : partial;
+          const lsTarget = dir || '.';
+          const result = await bashEnv.exec('cd ' + shellEscape(currentCwd) + ' && ls -1a ' + shellEscape(lsTarget) + ' 2>/dev/null');
+          const entries = result.stdout.trim().split('\n').filter(function(e) { return e && e !== '.' && e !== '..'; });
+          const completions = prefix ? entries.filter(function(e) { return e.startsWith(prefix); }) : entries;
+          if (completions.length === 1) {
+            parts[parts.length - 1] = dir + completions[0];
+            cmdInput.value = parts.join(' ');
+            resizeInput();
+          } else if (completions.length > 1) {
+            const cp = commonPrefix(completions);
+            if (cp.length > (prefix || '').length) {
+              parts[parts.length - 1] = dir + cp;
+              cmdInput.value = parts.join(' ');
+              resizeInput();
+            }
+            const line = document.createElement('div');
+            line.className = 'output-line';
+            line.appendChild(createSpan(completions.join('  '), 'dim'));
+            terminalContent.appendChild(line);
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+          }
+        }
+      } catch { /* silently ignore */ }
+    }
+
+    // Easter egg command names
+    const easterEggNames = ['matrix', 'konami', 'coffee', 'hack', 'secret', 'sudo', 'vim', 'emacs', 'exit'];
+
+    // Legacy command system (used as easter eggs + fallback while bash loads)
     const commands = {
       help: () => [
         { type: 'out', text: '' },
@@ -1626,7 +1962,7 @@
         { type: 'parts', parts: [{ text: '  LANGUAGES   ', cls: 'hl' }, { text: 'TypeScript, Python, PHP, HTML', cls: 'out' }] },
         { type: 'parts', parts: [{ text: '  FRONTEND    ', cls: 'hl' }, { text: 'React, Vue, Vanilla JS', cls: 'out' }] },
         { type: 'parts', parts: [{ text: '  BACKEND     ', cls: 'hl' }, { text: 'Node.js, FastAPI, PostgreSQL', cls: 'out' }] },
-        { type: 'parts', parts: [{ text: '  DEVOPS      ', cls: 'hl' }, { text: 'Docker, Vercel, AWS, Cluudflare', cls: 'out' }] },
+        { type: 'parts', parts: [{ text: '  DEVOPS      ', cls: 'hl' }, { text: 'Docker, Vercel, AWS, Cloudflare', cls: 'out' }] },
         { type: 'parts', parts: [{ text: '  INTERESTS   ', cls: 'hl' }, { text: 'AI/ML, COOKING, CLI tools', cls: 'out' }] },
         { type: 'out', text: '' },
         { type: 'parts', parts: [{ text: '  Currently leveling up: ', cls: 'dim' }, { text: 'LLM agents & Solution Architect', cls: 'accent' }] },
@@ -1751,48 +2087,160 @@
       'node yoren': () => 'NPX_YOREN',
     };
 
-    cmdInput.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
-        const cmd = cmdInput.value.trim().toLowerCase();
-        cmdInput.value = '';
-        resizeInput();
-        playEnterSound();
+    let executing = false;
 
-        // Show command
+    cmdInput.addEventListener('keydown', async (e) => {
+      // Ctrl+C: cancel current input
+      if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        const displayPath = getDisplayPath(getBashCwd());
         const cmdLine = document.createElement('div');
         cmdLine.className = 'output-line';
-        cmdLine.appendChild(createSpan('visitor@yoren.sh:~$ ', 'prompt'));
-        cmdLine.appendChild(createSpan(cmd || '\u00A0', 'cmd'));
+        cmdLine.appendChild(createSpan('visitor@yoren.sh:' + displayPath + '$ ', 'prompt'));
+        cmdLine.appendChild(createSpan(cmdInput.value + '^C', 'cmd'));
         terminalContent.appendChild(cmdLine);
+        cmdInput.value = '';
+        resizeInput();
+        historyIndex = -1;
+        terminalContent.scrollTop = terminalContent.scrollHeight;
+        return;
+      }
 
-        if (cmd) {
-          const handler = commands[cmd];
-          if (handler) {
-            const result = handler();
-            if (result === 'CLEAR') {
+      // Ctrl+L: clear terminal
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        terminalContent.textContent = '';
+        return;
+      }
+
+      // Arrow Up: history back
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (cmdHistory.length === 0) return;
+        if (historyIndex === -1) {
+          savedInput = cmdInput.value;
+          historyIndex = cmdHistory.length - 1;
+        } else if (historyIndex > 0) {
+          historyIndex--;
+        }
+        cmdInput.value = cmdHistory[historyIndex];
+        resizeInput();
+        return;
+      }
+
+      // Arrow Down: history forward
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex === -1) return;
+        if (historyIndex < cmdHistory.length - 1) {
+          historyIndex++;
+          cmdInput.value = cmdHistory[historyIndex];
+        } else {
+          historyIndex = -1;
+          cmdInput.value = savedInput;
+        }
+        resizeInput();
+        return;
+      }
+
+      // Tab: completion
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (!bashReady) return;
+        await handleTabCompletion();
+        return;
+      }
+
+      // Enter: execute command
+      if (e.key === 'Enter') {
+        if (executing) return;
+        executing = true;
+
+        try {
+          const rawCmd = cmdInput.value.trim();
+          const cmd = rawCmd.toLowerCase();
+          cmdInput.value = '';
+          resizeInput();
+          playEnterSound();
+          historyIndex = -1;
+          savedInput = '';
+
+          if (rawCmd) {
+            cmdHistory.push(rawCmd);
+          }
+
+          // Show command with current prompt
+          const displayPath = getDisplayPath(getBashCwd());
+          const cmdLine = document.createElement('div');
+          cmdLine.className = 'output-line';
+          cmdLine.appendChild(createSpan('visitor@yoren.sh:' + displayPath + '$ ', 'prompt'));
+          cmdLine.appendChild(createSpan(rawCmd || '\u00A0', 'cmd'));
+          terminalContent.appendChild(cmdLine);
+
+          if (rawCmd) {
+            // Special: clear
+            if (cmd === 'clear') {
               terminalContent.textContent = '';
-            } else if (result === 'NPX_YOREN') {
+            }
+            // Special: npx yoren variants
+            else if (cmd === 'npx yoren' || cmd === 'yoren' || cmd === './yoren' || cmd === 'node yoren') {
               await runNpxYoren();
-            } else if (Array.isArray(result)) {
-              for (const line of result) {
-                terminalContent.appendChild(createLine(line));
-                await sleep(30);
+            }
+            // Easter egg commands (always bypass bash)
+            else if (easterEggNames.includes(cmd) || cmd.startsWith('sudo ')) {
+              const handler = commands[cmd] || commands['sudo'];
+              if (handler) {
+                const result = handler();
+                if (Array.isArray(result)) {
+                  for (const line of result) {
+                    terminalContent.appendChild(createLine(line));
+                    await sleep(30);
+                  }
+                }
               }
             }
-          } else {
-            const errLine = createLine({ type: 'dim', text: '  Command not found: ' + cmd });
-            terminalContent.appendChild(errLine);
-            const hintLine = document.createElement('div');
-            hintLine.className = 'output-line';
-            hintLine.appendChild(createSpan('  Type ', 'dim'));
-            hintLine.appendChild(createSpan('help', 'hl'));
-            hintLine.appendChild(createSpan(' for commands', 'dim'));
-            terminalContent.appendChild(hintLine);
+            // Run through just-bash
+            else if (bashReady) {
+              try {
+                const result = await bashExec(rawCmd);
+                renderOutput(result.stdout, result.stderr);
+                updatePrompt();
+              } catch (err) {
+                terminalContent.appendChild(createLine({
+                  type: 'accent',
+                  text: String(err.message || err)
+                }));
+              }
+            }
+            // Fallback: use legacy commands while bash loads
+            else {
+              const handler = commands[cmd];
+              if (handler) {
+                const result = handler();
+                if (result === 'CLEAR') {
+                  terminalContent.textContent = '';
+                } else if (result === 'NPX_YOREN') {
+                  await runNpxYoren();
+                } else if (Array.isArray(result)) {
+                  for (const line of result) {
+                    terminalContent.appendChild(createLine(line));
+                    await sleep(30);
+                  }
+                }
+              } else {
+                terminalContent.appendChild(createLine({
+                  type: 'dim',
+                  text: '  Shell is loading... try again in a moment.'
+                }));
+              }
+            }
           }
-        }
 
-        trimTerminalLines();
-        terminalContent.scrollTop = terminalContent.scrollHeight;
+          trimTerminalLines();
+          terminalContent.scrollTop = terminalContent.scrollHeight;
+        } finally {
+          executing = false;
+        }
       } else {
         playKeySound();
       }
