@@ -1798,7 +1798,7 @@
     // Execute a command in the tracked cwd, and capture the new cwd after
     async function bashExec(cmd) {
       const expanded = expandAliases(cmd);
-      const wrapped = 'cd ' + shellEscape(currentCwd) + ' && ' + expanded + '; echo "' + CWD_MARKER + '"; pwd';
+      const wrapped = 'cd ' + shellEscape(currentCwd) + ' && ' + expanded + '\necho "' + CWD_MARKER + '"\npwd';
       const result = await bashEnv.exec(wrapped);
       let stdout = result.stdout || '';
       // Extract cwd from the end of stdout
