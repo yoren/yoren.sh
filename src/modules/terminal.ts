@@ -220,7 +220,7 @@ export function initTerminal(): void {
             terminalContent.textContent = "";
           } else if (result === "NPX_YOREN") {
             await runNpxYoren(terminalContent);
-          } else if (Array.isArray(result)) {
+          } else {
             for (const line of result) {
               terminalContent.appendChild(createLine(line));
               await sleep(30);

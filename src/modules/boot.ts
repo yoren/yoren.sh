@@ -115,7 +115,7 @@ export async function runBoot(): Promise<void> {
 
     if (line.append) {
       const appendSpan = document.createElement("span");
-      appendSpan.className = line.appendClass ?? "";
+      appendSpan.className = String(line.appendClass);
       appendSpan.textContent = line.append;
       div.appendChild(appendSpan);
     }
@@ -133,15 +133,13 @@ export async function runBoot(): Promise<void> {
     await sleep(line.delay);
   }
 
-  if (bootSkipped) return;
-
   await sleep(500);
+  if (bootSkipped) return;
   playBootSound();
   await sleep(300);
 
   document.removeEventListener("keydown", escHandler);
-  const skipBtnEl = document.getElementById("skipIntroBtn");
-  if (skipBtnEl) skipBtnEl.remove();
+  document.getElementById("skipIntroBtn")?.remove();
 
   bootSequence.classList.add("hidden");
   mainContent.style.visibility = "visible";
