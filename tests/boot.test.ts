@@ -178,18 +178,13 @@ describe("boot", () => {
 
       const bootPromise = runBoot();
 
-      // Boot loop: 13 lines * sleep(20) + sum of delays = ~2040ms
-      // Advance just past the loop but NOT past the post-loop sleep(500)
-      // Use small increments so async operations resolve properly
+      // Advance well past the loop and into sleep(500)
       for (let i = 0; i < 45; i++) {
         await vi.advanceTimersByTimeAsync(50);
       }
-      // 2250ms elapsed - loop done, in the middle of sleep(500)
 
-      // Skip boot during the sleep(500)
+      // Skip boot during the sleep(500) to hit the post-sleep check
       skipBoot();
-
-      // Advance past remaining timers
       await vi.advanceTimersByTimeAsync(2000);
 
       await bootPromise;
