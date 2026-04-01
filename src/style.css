@@ -500,10 +500,10 @@ body {
   box-shadow:
     0 0 10px var(--electric),
     0 0 20px var(--electric-dim);
-  animation: statusPulse 2s ease-in-out infinite;
+  animation: statusPulseGlow 2s ease-in-out infinite;
 }
 
-@keyframes statusPulse {
+@keyframes statusPulseGlow {
   0%,
   100% {
     opacity: 1;
@@ -514,6 +514,16 @@ body {
   50% {
     opacity: 0.6;
     box-shadow: 0 0 5px var(--electric);
+  }
+}
+
+@keyframes statusPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
   }
 }
 
