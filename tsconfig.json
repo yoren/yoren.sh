@@ -12,10 +12,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "dist",
+    "noEmit": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "include": ["src"],
