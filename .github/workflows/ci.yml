@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   ci:
     name: Lint, Typecheck & Test
@@ -29,3 +33,7 @@ jobs:
 
       - name: Test with coverage
         run: bun run test:coverage
+
+      - name: Coverage report
+        if: always() && github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2

@@ -5,6 +5,7 @@ export default defineConfig({
     environment: "happy-dom",
     coverage: {
       provider: "v8",
+      reporter: ["text", "json-summary", "json"],
       include: ["src/**/*.ts"],
       exclude: ["src/main.ts", "src/vite-env.d.ts"],
       thresholds: {
