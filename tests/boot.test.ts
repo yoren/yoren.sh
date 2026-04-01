@@ -49,7 +49,7 @@ describe("boot", () => {
       skipBoot();
       const bootSeq = document.getElementById("bootSequence")!;
       const mainContent = document.getElementById("mainContent")!;
-      expect(bootSeq.classList.contains("hidden")).toBe(true);
+      expect(bootSeq.classList.contains("boot-done")).toBe(true);
       expect(mainContent.style.visibility).toBe("visible");
       expect(isBootSkipped()).toBe(true);
     });
@@ -102,7 +102,7 @@ describe("boot", () => {
       // Verify boot was NOT skipped - completed naturally
       expect(isBootSkipped()).toBe(false);
       const bootSeq = document.getElementById("bootSequence")!;
-      expect(bootSeq.classList.contains("hidden")).toBe(true);
+      expect(bootSeq.classList.contains("boot-done")).toBe(true);
       const mainContent = document.getElementById("mainContent")!;
       expect(mainContent.style.visibility).toBe("visible");
       // Skip button should be removed after completion

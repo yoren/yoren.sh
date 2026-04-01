@@ -259,7 +259,7 @@ body {
     visibility 0.8s ease;
 }
 
-.boot-sequence.hidden {
+.boot-sequence.boot-done {
   opacity: 0;
   visibility: hidden;
 }

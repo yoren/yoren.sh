@@ -66,7 +66,7 @@ export function skipBoot(): void {
   const cmdInput = document.getElementById("cmdInput") as HTMLInputElement | null;
 
   bootSkipped = true;
-  if (bootSequence) bootSequence.classList.add("hidden");
+  if (bootSequence) bootSequence.classList.add("boot-done");
   if (mainContent) mainContent.style.visibility = "visible";
   const skipBtn = document.getElementById("skipIntroBtn");
   if (skipBtn) skipBtn.remove();
@@ -141,7 +141,7 @@ export async function runBoot(): Promise<void> {
   document.removeEventListener("keydown", escHandler);
   document.getElementById("skipIntroBtn")?.remove();
 
-  bootSequence.classList.add("hidden");
+  bootSequence.classList.add("boot-done");
   mainContent.style.visibility = "visible";
   if (cmdInput) cmdInput.focus();
 }
