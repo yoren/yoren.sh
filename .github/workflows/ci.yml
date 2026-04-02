@@ -36,7 +36,7 @@ jobs:
   coverage-report:
     name: Coverage Report
     needs: ci
-    if: always() && github.event_name == 'pull_request'
+    if: "!cancelled() && github.event_name == 'pull_request'"
     runs-on: ubuntu-latest
     permissions:
       contents: read
