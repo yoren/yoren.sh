@@ -34,7 +34,7 @@ jobs:
         run: bun run test:coverage
 
       - name: Upload coverage
-        if: always() && github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: coverage
@@ -43,7 +43,7 @@ jobs:
   coverage-report:
     name: Coverage Report
     needs: ci
-    if: "!cancelled() && github.event_name == 'pull_request'"
+    if: needs.ci.result == 'success' && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
