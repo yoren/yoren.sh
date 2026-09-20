@@ -102,10 +102,10 @@ export function createLine(lineData: LineData): HTMLDivElement {
   }
 
   // Keep desktop ASCII frames intact, but let mobile hide the decoration.
-  if (/^\s*[┌└│╭╰]/.test(div.textContent ?? "")) {
+  if (/^\s*[┌└│╭╰]/.test(div.textContent)) {
     div.classList.add("output-line--framed");
     for (const span of Array.from(div.children)) {
-      const pieces = (span.textContent ?? "").split(/([┌┐└┘─│╭╮╰╯]+)/);
+      const pieces = span.textContent.split(/([┌┐└┘─│╭╮╰╯]+)/);
       span.replaceChildren(
         ...pieces.map((text, index) =>
           index % 2 === 1
