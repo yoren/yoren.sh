@@ -1111,6 +1111,15 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* Perspective widens the page as terminal history increases its height. */
+  .barrel-wrap {
+    transform: none;
+  }
+
+  .link-item:nth-child(n) {
+    transform: none;
+  }
+
   .terminal-full {
     padding: 1rem;
   }
@@ -1125,6 +1134,25 @@ body {
     overflow-wrap: anywhere;
   }
 
+  .output-line--fields {
+    display: grid;
+    grid-template-columns: 6ch minmax(0, 1fr);
+    gap: 1ch;
+    white-space: normal;
+  }
+
+  .output-line:has(> .prompt) {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 1ch;
+    white-space: normal;
+  }
+
+  .output-line:has(> .prompt) > .cmd {
+    min-width: 0;
+  }
+
+  .output-line--prose,
   .output-line--framed {
     white-space: normal;
   }

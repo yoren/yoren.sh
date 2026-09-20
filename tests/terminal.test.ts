@@ -48,6 +48,31 @@ describe("terminal", () => {
       expect(Array.isArray(introLines)).toBe(true);
       expect(introLines.length).toBeGreaterThan(0);
     });
+
+    it("renders profile values separately from their labels for reflow", () => {
+      const role = introLines.find((line) =>
+        line.parts?.some((part) => part.text.includes("developer / maker")),
+      )!;
+      const div = createLine(role);
+      expect(div.classList.contains("output-line--fields")).toBe(true);
+      expect(div.children[0].textContent).toBe("  ROLE     ");
+      expect(div.children[1].textContent).toBe(
+        "developer / maker / internet dweller",
+      );
+    });
+
+    it("keeps the quote in one flow while preserving desktop line breaks", () => {
+      const quote = introLines
+        .map(createLine)
+        .find((line) =>
+          line.textContent.includes("Any sufficiently advanced technology"),
+        )!;
+      expect(quote.classList.contains("output-line--prose")).toBe(true);
+      expect(quote.textContent).toBe(
+        '  "Any sufficiently advanced technology\n   is indistinguishable from a hack.\n   that actually works."  - me, probably',
+      );
+      expect(quote.querySelector(".dim")?.textContent).toBe("- me, probably");
+    });
   });
 
   describe("createLine", () => {
