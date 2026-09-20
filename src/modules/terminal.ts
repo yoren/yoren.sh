@@ -16,35 +16,35 @@ export const introLines: LineData[] = [
   },
   { type: "out", text: "" },
   {
-    type: "parts",
+    type: "fields",
     parts: [
       { text: "  USER     ", cls: "dim" },
       { text: "yoren", cls: "hl" },
     ],
   },
   {
-    type: "parts",
+    type: "fields",
     parts: [
       { text: "  ROLE     ", cls: "dim" },
       { text: "developer / maker / internet dweller", cls: "out" },
     ],
   },
   {
-    type: "parts",
+    type: "fields",
     parts: [
       { text: "  SHELL    ", cls: "dim" },
       { text: "zsh with too many aliases", cls: "out" },
     ],
   },
   {
-    type: "parts",
+    type: "fields",
     parts: [
       { text: "  EDITOR   ", cls: "dim" },
       { text: "VS Code (mostly its variants)", cls: "out" },
     ],
   },
   {
-    type: "parts",
+    type: "fields",
     parts: [
       { text: "  UPTIME   ", cls: "dim" },
       { text: "since dial-up days", cls: "out" },
@@ -58,17 +58,12 @@ export const introLines: LineData[] = [
   },
   { type: "out", text: "" },
   {
-    type: "out",
-    text: '  "Any sufficiently advanced technology',
-  },
-  {
-    type: "out",
-    text: "   is indistinguishable from a hack.",
-  },
-  {
-    type: "parts",
+    type: "prose",
     parts: [
-      { text: '   that actually works."  ', cls: "out" },
+      {
+        text: '  "Any sufficiently advanced technology\n   is indistinguishable from a hack.\n   that actually works."  ',
+        cls: "out",
+      },
       { text: "- me, probably", cls: "dim" },
     ],
   },
@@ -88,7 +83,11 @@ export function createLine(lineData: LineData): HTMLDivElement {
   const div = document.createElement("div");
   div.className = "output-line";
 
-  if (lineData.type === "parts" && lineData.parts) {
+  if (lineData.type === "fields" || lineData.type === "prose") {
+    div.classList.add(`output-line--${lineData.type}`);
+  }
+
+  if (lineData.parts) {
     for (const part of lineData.parts) {
       div.appendChild(createSpan(part.text, part.cls));
     }
