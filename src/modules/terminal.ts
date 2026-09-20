@@ -101,6 +101,21 @@ export function createLine(lineData: LineData): HTMLDivElement {
     div.appendChild(createSpan(lineData.text || "\u00A0", lineData.type));
   }
 
+  // Keep desktop ASCII frames intact, but let mobile hide the decoration.
+  if (/^\s*[┌└│╭╰]/.test(div.textContent ?? "")) {
+    div.classList.add("output-line--framed");
+    for (const span of Array.from(div.children)) {
+      const pieces = (span.textContent ?? "").split(/([┌┐└┘─│╭╮╰╯]+)/);
+      span.replaceChildren(
+        ...pieces.map((text, index) =>
+          index % 2 === 1
+            ? createSpan(text, "terminal-frame")
+            : document.createTextNode(text),
+        ),
+      );
+    }
+  }
+
   return div;
 }
 
@@ -110,9 +125,7 @@ export function trimTerminalLines(terminalContent: HTMLElement): void {
   }
 }
 
-export async function runNpxYoren(
-  terminalContent: HTMLElement,
-): Promise<void> {
+export async function runNpxYoren(terminalContent: HTMLElement): Promise<void> {
   const lines = [
     { text: "", cls: "out", delay: 0 },
     {
@@ -154,14 +167,11 @@ export async function runNpxYoren(
   ];
 
   for (const line of lines) {
-    const el = document.createElement("div");
-    el.className = "output-line";
-    el.style.whiteSpace = "pre";
+    const el = createLine({
+      type: "parts",
+      parts: [{ text: line.text, cls: line.cls }],
+    });
     el.style.fontFamily = "monospace";
-    const span = document.createElement("span");
-    span.className = line.cls;
-    span.textContent = line.text;
-    el.appendChild(span);
     terminalContent.appendChild(el);
     terminalContent.scrollTop = terminalContent.scrollHeight;
     if (line.delay) {
@@ -191,7 +201,9 @@ export function resizeInput(cmdInput: HTMLInputElement): void {
 
 export function initTerminal(): void {
   const terminalContent = document.getElementById("terminalContent");
-  const cmdInput = document.getElementById("cmdInput") as HTMLInputElement | null;
+  const cmdInput = document.getElementById(
+    "cmdInput",
+  ) as HTMLInputElement | null;
 
   if (!terminalContent || !cmdInput) return;
 

@@ -1115,6 +1115,38 @@ body {
     padding: 1rem;
   }
 
+  .terminal-content {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .output-line {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .output-line--framed {
+    white-space: normal;
+  }
+
+  .terminal-frame {
+    display: none;
+  }
+
+  .input-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .input-wrapper {
+    min-width: 0;
+  }
+
+  .input-field {
+    max-width: calc(100% - 10px);
+  }
+
   .ascii-face {
     font-size: 0.35rem;
   }

@@ -96,6 +96,34 @@ describe("terminal", () => {
       expect(div.children[0].className).toBe("out");
     });
 
+    it("separates box decoration without losing text or colors", () => {
+      const div = createLine({
+        type: "parts",
+        parts: [
+          { text: "  ┌─ ", cls: "dim" },
+          { text: "ABOUT", cls: "hl" },
+          { text: " ───┐", cls: "dim" },
+        ],
+      });
+      expect(div.textContent).toBe("  ┌─ ABOUT ───┐");
+      expect(div.classList.contains("output-line--framed")).toBe(true);
+      div.querySelectorAll(".terminal-frame").forEach((el) => el.remove());
+      expect(div.textContent?.trim()).toBe("ABOUT");
+      expect(div.querySelector(".hl")?.textContent).toBe("ABOUT");
+    });
+
+    it("keeps framed prose but leaves ordinary punctuation alone", () => {
+      const div = createLine({
+        type: "out",
+        text: "  │  Visit https://yoren.sh  │",
+      });
+      div.querySelectorAll(".terminal-frame").forEach((el) => el.remove());
+      expect(div.textContent?.trim()).toBe("Visit https://yoren.sh");
+      const plain = createLine({ type: "out", text: "  a | b --minimal" });
+      expect(plain.textContent).toBe("  a | b --minimal");
+      expect(plain.className).toBe("output-line");
+    });
+
     it("creates a line with nbsp for empty text", () => {
       const div = createLine({ type: "out", text: "" });
       expect(div.children[0].textContent).toBe("\u00A0");
@@ -137,6 +165,11 @@ describe("terminal", () => {
       }
       await promise;
       expect(container.children.length).toBe(9);
+      expect(container.querySelectorAll(".output-line--framed").length).toBe(7);
+      container
+        .querySelectorAll(".terminal-frame")
+        .forEach((el) => el.remove());
+      expect(container.textContent).toContain("Visit https://yoren.sh");
       vi.useRealTimers();
     });
   });
@@ -283,9 +316,7 @@ describe("terminal", () => {
     it("resizes input on input event", () => {
       setupTerminalDOM();
       initTerminal();
-      const cmdInput = document.getElementById(
-        "cmdInput",
-      )! as HTMLInputElement;
+      const cmdInput = document.getElementById("cmdInput")! as HTMLInputElement;
       cmdInput.value = "test";
       cmdInput.dispatchEvent(new Event("input", { bubbles: true }));
       expect(cmdInput.style.width).toBe("4ch");
@@ -296,9 +327,9 @@ describe("terminal", () => {
       initTerminal();
       const cmdInput = document.getElementById("cmdInput")!;
       const focusSpy = vi.spyOn(cmdInput, "focus");
-      document.querySelector(".terminal-section")!.dispatchEvent(
-        new MouseEvent("click", { bubbles: true }),
-      );
+      document
+        .querySelector(".terminal-section")!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
       expect(focusSpy).toHaveBeenCalled();
     });
   });
