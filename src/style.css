@@ -661,6 +661,10 @@ body {
   color: #27c93f;
 }
 
+.input-area {
+  padding: 0 1.5rem 1.5rem;
+}
+
 .input-row {
   display: flex;
   align-items: center;
@@ -678,7 +682,7 @@ body {
   border: none;
   color: var(--phosphor-bright);
   font-family: "IBM Plex Mono", monospace;
-  font-size: 1rem;
+  font-size: inherit;
   outline: none;
   caret-color: transparent;
   width: 0;
@@ -1084,6 +1088,12 @@ body {
   text-shadow: 0 0 10px var(--electric-dim);
 }
 
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .footer-right {
   display: flex;
   gap: 1.5rem;
@@ -1134,11 +1144,18 @@ body {
     overflow-wrap: anywhere;
   }
 
+  /* Label/value pairs keep their column when the value wraps. The column
+     width comes from the padding the line was authored with (--field-col),
+     so every line in a group lines up. */
   .output-line--fields {
     display: grid;
-    grid-template-columns: 6ch minmax(0, 1fr);
-    gap: 1ch;
+    grid-template-columns: var(--field-col, 7ch) minmax(0, 1fr);
     white-space: normal;
+  }
+
+  .output-line--fields > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .output-line:has(> .prompt) {
@@ -1211,9 +1228,130 @@ body {
     display: none;
   }
 
+  /* Reclaim the gutters: at 320px every character of line width counts. */
+  .terminal-full {
+    padding: 0.75rem;
+  }
+
+  .header-text {
+    min-width: 0;
+  }
+
+  .site-subtitle {
+    letter-spacing: 0.2em;
+  }
+
+  .status-bar {
+    gap: 0.5rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.8rem;
+  }
+
+  .terminal-bar {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .terminal-path {
+    font-size: 0.75rem;
+  }
+
+  .terminal-content {
+    padding: 0.75rem;
+    font-size: 0.9375rem;
+    min-height: 300px;
+  }
+
+  .input-area {
+    padding: 0 0.75rem 0.75rem;
+    font-size: 0.9375rem;
+  }
+
+  /* "visitor@yoren.sh:~$ " eats two thirds of a 320px line, leaving almost
+     nothing to type into. Keep just the "~$ " sigil. */
+  .prompt-host {
+    display: none;
+  }
+
+  .cli-box {
+    margin: 2rem 0;
+    padding: 1.5rem 1.25rem;
+  }
+
+  .cli-box::before {
+    left: 1.25rem;
+  }
+
+  .cli-cmd {
+    max-width: 100%;
+    padding: 0.9rem 1.25rem;
+    font-size: 1.1rem;
+  }
+
+  .cli-note {
+    font-size: 0.8rem;
+  }
+
+  .links-section {
+    margin: 2rem 0;
+  }
+
+  .links-header {
+    letter-spacing: 0.2em;
+  }
+
+  .link-box {
+    padding: 0.9rem 1rem;
+  }
+
+  .link-title {
+    gap: 0.5rem;
+  }
+
+  .link-signal {
+    font-size: 0.65rem;
+  }
+
+  /* Keep the description clear of the corner glyph. */
+  .link-desc {
+    padding-left: 1rem;
+    padding-right: 1.75rem;
+  }
+
   .footer {
+    margin-top: 2.5rem;
     flex-direction: column;
     text-align: center;
+  }
+
+  .footer-left {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .footer-sep {
+    display: none;
+  }
+
+  /* The BIOS lines are wider than the screen; let them wrap instead of
+     being clipped by the boot container. */
+  .boot-sequence {
+    padding: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .boot-line {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .skip-intro {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .sound-toggle {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
   }
 }
 

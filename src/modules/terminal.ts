@@ -87,6 +87,16 @@ export function createLine(lineData: LineData): HTMLDivElement {
     div.classList.add(`output-line--${lineData.type}`);
   }
 
+  // The label column on mobile is as wide as the padding the line was
+  // written with, so a group of fields stays aligned when values wrap.
+  if (lineData.type === "fields") {
+    const label = lineData.parts?.[0]?.text ?? "";
+    const width = label.replace(/^\s+/, "").length;
+    if (width) {
+      div.style.setProperty("--field-col", `${width}ch`);
+    }
+  }
+
   if (lineData.parts) {
     for (const part of lineData.parts) {
       div.appendChild(createSpan(part.text, part.cls));
@@ -219,7 +229,9 @@ export function initTerminal(): void {
 
       const cmdLine = document.createElement("div");
       cmdLine.className = "output-line";
-      cmdLine.appendChild(createSpan("visitor@yoren.sh:~$ ", "prompt"));
+      const promptSpan = createSpan("~$ ", "prompt");
+      promptSpan.prepend(createSpan("visitor@yoren.sh:", "prompt-host"));
+      cmdLine.appendChild(promptSpan);
       cmdLine.appendChild(createSpan(cmd || "\u00A0", "cmd"));
       terminalContent.appendChild(cmdLine);
 
