@@ -71,17 +71,12 @@ describe("terminal", () => {
       );
     });
 
-    it("keeps the quote in one flow while preserving desktop line breaks", () => {
-      const quote = introLines
-        .map(createLine)
-        .find((line) =>
-          line.textContent.includes("Any sufficiently advanced technology"),
-        )!;
-      expect(quote.classList.contains("output-line--prose")).toBe(true);
-      expect(quote.textContent).toBe(
-        '  "Any sufficiently advanced technology\n   is indistinguishable from a hack.\n   that actually works."  - me, probably',
+    it("ends on the hint to type help, with no motd beat", () => {
+      const rendered = introLines.map((line) => createLine(line).textContent);
+      expect(rendered.join("\n")).not.toContain("motd");
+      expect(rendered.filter((text) => text.trim()).at(-1)).toBe(
+        "  Type help for available commands",
       );
-      expect(quote.querySelector(".dim")?.textContent).toBe("- me, probably");
     });
   });
 

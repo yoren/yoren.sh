@@ -1169,7 +1169,6 @@ body {
     min-width: 0;
   }
 
-  .output-line--prose,
   .output-line--framed {
     white-space: normal;
   }
