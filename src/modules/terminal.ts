@@ -52,23 +52,6 @@ export const introLines: LineData[] = [
   },
   { type: "out", text: "" },
   {
-    type: "prompt",
-    text: "yoren@localhost:~$ ",
-    cmd: "cat /etc/motd",
-  },
-  { type: "out", text: "" },
-  {
-    type: "prose",
-    parts: [
-      {
-        text: '  "Any sufficiently advanced technology\n   is indistinguishable from a hack.\n   that actually works."  ',
-        cls: "out",
-      },
-      { text: "- me, probably", cls: "dim" },
-    ],
-  },
-  { type: "out", text: "" },
-  {
     type: "parts",
     parts: [
       { text: "  Type ", cls: "dim" },
@@ -83,8 +66,15 @@ export function createLine(lineData: LineData): HTMLDivElement {
   const div = document.createElement("div");
   div.className = "output-line";
 
-  if (lineData.type === "fields" || lineData.type === "prose") {
-    div.classList.add(`output-line--${lineData.type}`);
+  if (lineData.type === "fields") {
+    div.classList.add("output-line--fields");
+  }
+
+  // The label column on mobile is as wide as the padding the line was
+  // written with, so a group of fields stays aligned when values wrap.
+  const [label] = lineData.parts ?? [];
+  if (lineData.type === "fields" && label) {
+    div.style.setProperty("--field-col", `${label.text.trimStart().length}ch`);
   }
 
   if (lineData.parts) {
@@ -219,7 +209,9 @@ export function initTerminal(): void {
 
       const cmdLine = document.createElement("div");
       cmdLine.className = "output-line";
-      cmdLine.appendChild(createSpan("visitor@yoren.sh:~$ ", "prompt"));
+      const promptSpan = createSpan("~$ ", "prompt");
+      promptSpan.prepend(createSpan("visitor@yoren.sh:", "prompt-host"));
+      cmdLine.appendChild(promptSpan);
       cmdLine.appendChild(createSpan(cmd || "\u00A0", "cmd"));
       terminalContent.appendChild(cmdLine);
 

@@ -103,10 +103,10 @@
           <span class="terminal-path">~/yoren.sh</span>
         </div>
         <div class="terminal-content" id="terminalContent" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Terminal output"></div>
-        <div style="padding: 0 1.5rem 1.5rem;">
+        <div class="input-area">
           <div class="input-row">
             <label for="cmdInput" class="sr-only">Terminal command input</label>
-            <span class="prompt" aria-hidden="true">visitor@yoren.sh:~$&nbsp;</span>
+            <span class="prompt" aria-hidden="true"><span class="prompt-host">visitor@yoren.sh:</span>~$&nbsp;</span>
             <div class="input-wrapper">
               <input type="text" class="input-field" id="cmdInput" autocomplete="off" spellcheck="false" aria-label="Command input">
               <div class="input-cursor" id="inputCursor" aria-hidden="true"></div>
@@ -187,7 +187,9 @@
       <!-- Footer -->
       <footer class="footer">
         <div class="footer-left">
-          crafted with obsession by yoren | <a href="https://github.com/yoren/yoren.sh" target="_blank" rel="noopener noreferrer">view source</a>
+          <span>crafted with obsession by yoren</span>
+          <span class="footer-sep" aria-hidden="true">|</span>
+          <a href="https://github.com/yoren/yoren.sh" target="_blank" rel="noopener noreferrer">view source</a>
         </div>
         <div class="footer-right">
           <span>2026</span>

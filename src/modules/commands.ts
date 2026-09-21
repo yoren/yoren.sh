@@ -22,56 +22,56 @@ export function createCommands(): Record<string, CommandHandler> {
       { type: "out", text: "  AVAILABLE COMMANDS:" },
       { type: "out", text: "" },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  help      ", cls: "hl" },
           { text: "show this message", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  about     ", cls: "hl" },
           { text: "who am i", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  skills    ", cls: "hl" },
           { text: "technical abilities", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  projects  ", cls: "hl" },
           { text: "things i've built", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  contact   ", cls: "hl" },
           { text: "reach out", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  npx yoren ", cls: "hl" },
           { text: "run the CLI card", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  clear     ", cls: "hl" },
           { text: "clear terminal", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  secret    ", cls: "hl" },
           { text: "???", cls: "dim" },
@@ -143,35 +143,35 @@ export function createCommands(): Record<string, CommandHandler> {
     skills: () => [
       { type: "out", text: "" },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  LANGUAGES   ", cls: "hl" },
           { text: "TypeScript, Python, PHP, HTML", cls: "out" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  FRONTEND    ", cls: "hl" },
           { text: "React, Vue, Vanilla JS", cls: "out" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  BACKEND     ", cls: "hl" },
           { text: "Node.js, FastAPI, PostgreSQL", cls: "out" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  DEVOPS      ", cls: "hl" },
           { text: "Docker, Vercel, AWS, Cluudflare", cls: "out" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  INTERESTS   ", cls: "hl" },
           { text: "AI/ML, COOKING, CLI tools", cls: "out" },
@@ -225,21 +225,21 @@ export function createCommands(): Record<string, CommandHandler> {
     contact: () => [
       { type: "out", text: "" },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  EMAIL    ", cls: "dim" },
           { text: "hi@yoren.sh", cls: "hl" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  GITHUB   ", cls: "dim" },
           { text: "github.com/yoren", cls: "out" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  TWITTER  ", cls: "dim" },
           { text: "@1fixdotio", cls: "out" },
@@ -259,28 +259,28 @@ export function createCommands(): Record<string, CommandHandler> {
       { type: "out", text: "" },
       { type: "dim", text: "  Hidden commands unlocked:" },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  matrix    ", cls: "hl" },
           { text: "take the red pill", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  konami    ", cls: "hl" },
           { text: "↑↑↓↓←→←→BA", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  coffee    ", cls: "hl" },
           { text: "essential fuel", cls: "dim" },
         ],
       },
       {
-        type: "parts",
+        type: "fields",
         parts: [
           { text: "  hack      ", cls: "hl" },
           { text: "access mainframe", cls: "dim" },
