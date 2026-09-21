@@ -89,12 +89,9 @@ export function createLine(lineData: LineData): HTMLDivElement {
 
   // The label column on mobile is as wide as the padding the line was
   // written with, so a group of fields stays aligned when values wrap.
-  if (lineData.type === "fields") {
-    const label = lineData.parts?.[0]?.text ?? "";
-    const width = label.replace(/^\s+/, "").length;
-    if (width) {
-      div.style.setProperty("--field-col", `${width}ch`);
-    }
+  const [label] = lineData.parts ?? [];
+  if (lineData.type === "fields" && label) {
+    div.style.setProperty("--field-col", `${label.text.trimStart().length}ch`);
   }
 
   if (lineData.parts) {

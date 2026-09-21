@@ -61,6 +61,16 @@ describe("terminal", () => {
       );
     });
 
+    it("sizes the label column from the padding the line was written with", () => {
+      const role = introLines.find((line) =>
+        line.parts?.some((part) => part.text.includes("developer / maker")),
+      )!;
+      // "  ROLE     " indents by two and pads the label out to nine columns.
+      expect(createLine(role).style.getPropertyValue("--field-col")).toBe(
+        "9ch",
+      );
+    });
+
     it("keeps the quote in one flow while preserving desktop line breaks", () => {
       const quote = introLines
         .map(createLine)
@@ -87,6 +97,12 @@ describe("terminal", () => {
       expect(div.tagName).toBe("DIV");
       expect(div.className).toBe("output-line");
       expect(div.children.length).toBe(2);
+    });
+
+    it("leaves the label column unset when a fields line has no parts", () => {
+      const div = createLine({ type: "fields", parts: [] });
+      expect(div.classList.contains("output-line--fields")).toBe(true);
+      expect(div.style.getPropertyValue("--field-col")).toBe("");
     });
 
     it("creates a prompt line with command", () => {
