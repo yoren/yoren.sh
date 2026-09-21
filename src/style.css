@@ -1161,18 +1161,31 @@ body {
     display: none;
   }
 
+  /* Keep the prompt, the input and the block cursor on a single line:
+     the input shrinks into the space left by the prompt instead of the
+     whole field stacking underneath it. */
   .input-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  .input-row > .prompt {
+    flex: 0 0 auto;
   }
 
   .input-wrapper {
+    flex: 1 1 0;
     min-width: 0;
   }
 
+  /* Shrink-only: a grown input would push the cursor to the far right
+     while the line is still empty. */
   .input-field {
-    max-width: calc(100% - 10px);
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .ascii-face {
